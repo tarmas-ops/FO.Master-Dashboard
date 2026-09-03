@@ -17,7 +17,7 @@ import {
   trailingMonths,
   validatePortfolioConsistency,
 } from "../lib/calculos";
-import { formatCLP, formatMultiple, formatPct } from "../lib/formatters";
+import { formatCLP, formatMultiple, formatOr, formatPct } from "../lib/formatters";
 
 const nw = calculateNetWorth(db);
 console.log("PATRIMONIO");
@@ -34,9 +34,9 @@ for (const e of calculateGeographicExposure(db)) console.log(`  ${e.label.padEnd
 
 const re = realEstatePortfolio(db);
 console.log("\nINMOBILIARIO (100%)");
-console.log("  Valor", formatCLP(re.totalValue), "Deuda", formatCLP(re.totalDebt), "NOI", formatCLP(re.totalNOI), "Cap", formatPct(re.weightedCapRate), "LTV", formatPct(re.weightedLTV), "Ocup", formatPct(re.weightedOccupancy));
+console.log("  Valor", formatCLP(re.totalValue), "Deuda", formatCLP(re.totalDebt), "NOI", formatOr(re.totalNOI, formatCLP), "Cap", formatOr(re.weightedCapRate, formatPct), "LTV", formatPct(re.weightedLTV), "Ocup", formatOr(re.weightedOccupancy, formatPct));
 for (const r of re.rows) {
-  console.log(`  ${r.asset.name.padEnd(28)} LTV ${formatPct(r.ltv).padStart(6)}  DSCR ${r.dscr === null ? "—" : formatMultiple(r.dscr)}  Cap ${formatPct(r.capRate)}  CoC ${formatPct(r.cashOnCash)}`);
+  console.log(`  ${r.asset.name.padEnd(28)} LTV ${formatPct(r.ltv).padStart(6)}  DSCR ${r.dscr === null ? "—" : formatMultiple(r.dscr)}  Cap ${formatOr(r.capRate, formatPct)}  CoC ${formatOr(r.cashOnCash, formatPct)}`);
 }
 
 const fp = calculateInvestmentFirepower(db);

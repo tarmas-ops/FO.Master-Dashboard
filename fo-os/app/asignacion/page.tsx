@@ -33,6 +33,9 @@ const STATUS_LABELS: Record<AllocationStatus, string> = {
 export default function AsignacionPage() {
   const allocation = calculatePortfolioAllocation(db);
   const exposure = calculateEconomicExposure(db);
+  // Sin política de asignación definida no hay objetivo contra el cual medir: mostrar 0%
+  // haría aparecer toda la cartera como "sobreponderada", que no significa nada.
+  const hasTargets = db.allocationTargets.some((t) => t.target > 0);
 
   return (
     <>
@@ -45,8 +48,8 @@ export default function AsignacionPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Asignación Actual vs. Objetivo</CardTitle>
-            <span className="text-[12px] text-muted">Banda neutral ±2 puntos</span>
+            <CardTitle>{hasTargets ? "Asignación Actual vs. Objetivo" : "Asignación Actual"}</CardTitle>
+            <span className="text-[12px] text-muted">{hasTargets ? "Banda neutral ±2 puntos" : "Sin política de asignación definida"}</span>
           </CardHeader>
           <CardContent className="pt-0">
             <Table>
@@ -54,10 +57,16 @@ export default function AsignacionPage() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead>Clase de Activo</TableHead>
                   <TableHead className="text-right">Actual</TableHead>
-                  <TableHead className="text-right">Objetivo</TableHead>
-                  <TableHead className="text-right">Diferencia</TableHead>
-                  <TableHead className="text-right">Monto a Rebalancear</TableHead>
-                  <TableHead className="text-right">Estado</TableHead>
+                  {hasTargets ? (
+                    <>
+                      <TableHead className="text-right">Objetivo</TableHead>
+                      <TableHead className="text-right">Diferencia</TableHead>
+                      <TableHead className="text-right">Monto a Rebalancear</TableHead>
+                      <TableHead className="text-right">Estado</TableHead>
+                    </>
+                  ) : (
+                    <TableHead className="text-right">Valor Económico</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -65,23 +74,30 @@ export default function AsignacionPage() {
                   <TableRow key={a.assetClass}>
                     <TableCell className="font-medium">{a.label}</TableCell>
                     <TableCell className="text-right">{formatPct(a.current)}</TableCell>
-                    <TableCell className="text-right text-muted">{formatPct(a.target)}</TableCell>
-                    <TableCell className={`text-right ${Math.abs(a.current - a.target) > 0.02 ? "text-foreground" : "text-muted"}`}>
-                      {formatPct(a.current - a.target, { sign: true })}
-                    </TableCell>
-                    <TableCell className={`text-right ${a.rebalanceAmount >= 0 ? "text-positive" : "text-negative"}`}>
-                      {formatCLP(a.rebalanceAmount, { sign: true })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={STATUS_VARIANT[a.status]}>{STATUS_LABELS[a.status]}</Badge>
-                    </TableCell>
+                    {hasTargets ? (
+                      <>
+                        <TableCell className="text-right text-muted">{formatPct(a.target)}</TableCell>
+                        <TableCell className={`text-right ${Math.abs(a.current - a.target) > 0.02 ? "text-foreground" : "text-muted"}`}>
+                          {formatPct(a.current - a.target, { sign: true })}
+                        </TableCell>
+                        <TableCell className={`text-right ${a.rebalanceAmount >= 0 ? "text-positive" : "text-negative"}`}>
+                          {formatCLP(a.rebalanceAmount, { sign: true })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={STATUS_VARIANT[a.status]}>{STATUS_LABELS[a.status]}</Badge>
+                        </TableCell>
+                      </>
+                    ) : (
+                      <TableCell className="text-right">{formatCLP(a.currentValue)}</TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             <p className="mt-3 text-[12px] text-muted">
-              Monto positivo = comprar para alcanzar el objetivo; negativo = reducir. Los montos suman cero, por lo que un rebalanceo completo no
-              requiere capital adicional.
+              {hasTargets
+                ? "Monto positivo = comprar para alcanzar el objetivo; negativo = reducir. Los montos suman cero, por lo que un rebalanceo completo no requiere capital adicional."
+                : "La fuente no define una política de asignación objetivo. Al fijar el porcentaje objetivo por clase de activo, esta tabla muestra la desviación y el monto a rebalancear."}
             </p>
           </CardContent>
         </Card>

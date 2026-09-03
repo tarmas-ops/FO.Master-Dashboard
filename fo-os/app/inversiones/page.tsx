@@ -3,15 +3,18 @@ import { PageHeader } from "@/components/navegacion/PageHeader";
 import { DataTable, type TableColumn } from "@/components/tablas/DataTable";
 import { db } from "@/data";
 import { allAssetEquities, ASSET_CLASS_LABELS, calculateNetWorth, COUNTRY_LABELS } from "@/lib/calculos";
-import { formatCLP, formatPct } from "@/lib/formatters";
+import { formatCLP, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Inversiones · Family Office OS" };
 
 export default function InversionesPage() {
   const equities = allAssetEquities(db).sort((a, b) => b.economicValue - a.economicValue);
   const nw = calculateNetWorth(db);
-  const invested = equities.reduce((a, e) => a + e.asset.acquisitionCost * e.familyShare, 0);
-  const gain = nw.totalAssets - invested;
+  // Solo se agrega el costo de los activos que lo registran; el resto no distorsiona el total.
+  const withCost = equities.filter((e) => e.asset.acquisitionCost !== undefined);
+  const invested = withCost.length === 0 ? null : withCost.reduce((a, e) => a + (e.asset.acquisitionCost ?? 0) * e.familyShare, 0);
+  const costValue = withCost.reduce((a, e) => a + e.economicValue, 0);
+  const gain = invested === null ? null : costValue - invested;
 
   const columns: TableColumn[] = [
     { key: "name", header: "Inversión" },
@@ -28,7 +31,7 @@ export default function InversionesPage() {
   ];
 
   const rows = equities.map((e) => {
-    const ret = e.asset.acquisitionCost > 0 ? e.asset.currentValue / e.asset.acquisitionCost - 1 : 0;
+    const ret = e.asset.acquisitionCost !== undefined && e.asset.acquisitionCost > 0 ? e.asset.currentValue / e.asset.acquisitionCost - 1 : null;
     const href =
       e.asset.assetClass === "INMOBILIARIO"
         ? `/inmobiliario/${e.asset.id}`
@@ -62,7 +65,7 @@ export default function InversionesPage() {
         e.grossDebt > 0 ? formatCLP(e.grossDebt) : "—",
         formatCLP(e.attributableEquity),
         formatPct(nw.netWorth > 0 ? e.attributableEquity / nw.netWorth : 0),
-        <span key="r" className={ret >= 0 ? "text-positive" : "text-negative"}>{formatPct(ret, { sign: true })}</span>,
+        ret === null ? "s/d" : <span key="r" className={ret >= 0 ? "text-positive" : "text-negative"}>{formatPct(ret, { sign: true })}</span>,
       ],
     };
   });
@@ -77,8 +80,20 @@ export default function InversionesPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Activos Totales" value={formatCLP(nw.totalAssets)} hint={`${equities.length} posiciones`} />
-        <MetricCard label="Capital Invertido" value={formatCLP(invested)} hint="Costo de adquisición económico" />
-        <MetricCard label="Ganancia No Realizada" value={formatCLP(gain, { sign: true })} delta={invested > 0 ? gain / invested : null} />
+        <MetricCard
+          label="Capital Invertido"
+          value={formatOr(invested, (v) => formatCLP(v))}
+          hint={
+            withCost.length === equities.length
+              ? "Costo de adquisición económico"
+              : `${withCost.length} de ${equities.length} posiciones con costo registrado`
+          }
+        />
+        <MetricCard
+          label="Ganancia No Realizada"
+          value={formatOr(gain, (v) => formatCLP(v, { sign: true }))}
+          delta={invested !== null && gain !== null && invested > 0 ? gain / invested : null}
+        />
         <MetricCard label="Patrimonio Neto" value={formatCLP(nw.netWorth)} hint={`Deuda ${formatCLP(nw.totalDebt)}`} />
       </div>
 

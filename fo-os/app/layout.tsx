@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { AppShell } from "@/components/navegacion/AppShell";
-import { db } from "@/data";
+import { activeDataset, db } from "@/data";
 import { formatDate } from "@/lib/formatters";
 import "./globals.css";
 
@@ -15,7 +15,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <AppShell familyOfficeName={db.familyOffice.name} asOf={formatDate(db.asOf)}>
+        <AppShell
+          familyOfficeName={db.familyOffice.name}
+          asOf={formatDate(db.asOf)}
+          dataLabel={activeDataset === "real" ? `Fuente: ${db.dataCoverage?.source ?? "archivo maestro"}` : "Datos ficticios — demo"}
+        >
           {children}
         </AppShell>
       </body>

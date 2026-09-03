@@ -7,7 +7,7 @@ import { ThresholdBadge } from "@/components/inversiones/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/data";
 import { ALERT_THRESHOLDS, calculateDSCR, calculateNetWorth, calculatePortfolioAlerts, realEstatePortfolio } from "@/lib/calculos";
-import { formatCLP, formatDate, formatMultiple, formatPct } from "@/lib/formatters";
+import { formatCLP, formatDate, formatMultiple, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Deuda · Family Office OS" };
 
@@ -15,7 +15,12 @@ export default function DeudaPage() {
   const nw = calculateNetWorth(db);
   const re = realEstatePortfolio(db);
   const totalDebt = db.loans.reduce((a, l) => a + l.balance, 0);
-  const weightedRate = totalDebt > 0 ? db.loans.reduce((a, l) => a + l.rate * l.balance, 0) / totalDebt : 0;
+  // La tasa promedio se pondera solo sobre los créditos que declaran una: incluir los que
+  // no la traen (una patente morosa, por ejemplo) la diluiría hacia cero.
+  const ratedLoans = db.loans.filter((l) => l.rate > 0);
+  const ratedBalance = ratedLoans.reduce((a, l) => a + l.balance, 0);
+  const weightedRate = ratedBalance > 0 ? ratedLoans.reduce((a, l) => a + l.rate * l.balance, 0) / ratedBalance : null;
+  const mortgagedValue = re.rows.filter((r) => r.debt > 0).reduce((a, r) => a + r.value, 0);
   const annualService = db.loans.reduce((a, l) => a + l.annualDebtService, 0);
   const alerts = calculatePortfolioAlerts(db).filter((a) => ["LTV", "DSCR", "VENCIMIENTO_DEUDA", "TASA_VARIABLE"].includes(a.kind));
 
@@ -47,7 +52,7 @@ export default function DeudaPage() {
     const asset = db.assets.find((a) => a.id === l.assetId);
     const reRow = re.rows.find((r) => r.asset.id === l.assetId);
     const ltv = asset ? l.balance / asset.currentValue : null;
-    const dscr = reRow ? calculateDSCR(reRow.noi, l.annualDebtService) : null;
+    const dscr = reRow && reRow.noi !== null ? calculateDSCR(reRow.noi, l.annualDebtService) : null;
     return {
       id: l.id,
       values: [l.name, asset?.name ?? "—", l.bank, l.balance, l.currency, l.rate, l.amortization, l.maturityDate, ltv, dscr],
@@ -58,7 +63,7 @@ export default function DeudaPage() {
         formatCLP(l.balance),
         <span key="c" className="text-muted">{l.currency}</span>,
         <span key="r" className={l.rateType === "VARIABLE" && l.rate >= ALERT_THRESHOLDS.variableRateWarning ? "text-negative" : undefined}>
-          {formatPct(l.rate)} {l.rateType === "VARIABLE" ? "var." : "fija"}
+          {l.rate > 0 ? `${formatPct(l.rate)} ${l.rateType === "VARIABLE" ? "var." : "fija"}` : "s/d"}
         </span>,
         <span key="am" className="text-muted">{l.amortization === "BULLET" ? "Bullet" : l.amortization === "MENSUAL" ? "Mensual" : "Trimestral"}</span>,
         <span key="v" className="text-muted">{formatDate(l.maturityDate)}</span>,
@@ -78,9 +83,18 @@ export default function DeudaPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard label="Deuda Total" value={formatCLP(totalDebt)} hint={`Económica ${formatCLP(nw.totalDebt)}`} />
-        <MetricCard label="Tasa Promedio Ponderada" value={formatPct(weightedRate)} />
+        <MetricCard
+          label="Tasa Promedio Ponderada"
+          value={formatOr(weightedRate, formatPct)}
+          hint={weightedRate === null ? "Ningún crédito declara tasa" : undefined}
+        />
         <MetricCard label="Servicio de Deuda Anual" value={formatCLP(annualService)} />
-        <MetricCard label="LTV Promedio" value={formatPct(re.weightedLTV)} tooltip="Deuda inmobiliaria total sobre valor de los activos." />
+        <MetricCard
+          label="LTV Promedio"
+          value={formatOr(mortgagedValue > 0 ? re.weightedLTV : null, formatPct)}
+          hint={mortgagedValue > 0 ? undefined : "Sin deuda asociada a inmuebles"}
+          tooltip="Deuda inmobiliaria total sobre valor de los activos."
+        />
         <MetricCard label="Deuda / Patrimonio Neto" value={formatPct(nw.totalDebt / nw.netWorth)} />
       </div>
 

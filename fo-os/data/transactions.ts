@@ -64,11 +64,13 @@ function build(first: string, realized: boolean, growth: number): Transaction[] 
 
     // Arriendos y gastos operacionales por activo inmobiliario
     realEstate.forEach((re, k) => {
-      if (re.grossRent === 0) return;
+      if (!re.grossRent) return;
       const rent = (re.grossRent / 12) * g * jitter(i * 7 + k);
       out.push(tx(day, re.ownerEntityId, "ARRIENDOS", "INGRESO", rent, `Arriendo ${re.name}`, realized, { assetId: re.id, currency: re.currency }));
-      const opex = ((re.grossRent - re.noi) / 12) * g * jitter(i * 11 + k);
-      out.push(tx(`${ym}-20`, re.ownerEntityId, "GASTOS_OPERACIONALES", "EGRESO", opex, `Gastos operacionales ${re.name}`, realized, { assetId: re.id }));
+      if (re.noi !== undefined) {
+        const opex = ((re.grossRent - re.noi) / 12) * g * jitter(i * 11 + k);
+        out.push(tx(`${ym}-20`, re.ownerEntityId, "GASTOS_OPERACIONALES", "EGRESO", opex, `Gastos operacionales ${re.name}`, realized, { assetId: re.id }));
+      }
     });
 
     // Servicio de deuda mensual
@@ -83,19 +85,19 @@ function build(first: string, realized: boolean, growth: number): Transaction[] 
     // Intereses de renta fija y caja
     const fixedIncome = securities.filter((s) => s.assetClass === "RENTA_FIJA");
     fixedIncome.forEach((s, k) => {
-      out.push(tx(`${ym}-15`, s.ownerEntityId, "INTERESES", "INGRESO", (s.dividendsLTM / 12) * jitter(i * 5 + k, 0.02), `Intereses ${s.name}`, realized, { assetId: s.id, currency: s.currency }));
+      out.push(tx(`${ym}-15`, s.ownerEntityId, "INTERESES", "INGRESO", ((s.dividendsLTM ?? 0) / 12) * jitter(i * 5 + k, 0.02), `Intereses ${s.name}`, realized, { assetId: s.id, currency: s.currency }));
     });
     out.push(tx(`${ym}-28`, "andes", "INTERESES", "INGRESO", 0.9 * MM * jitter(i * 13, 0.1), "Intereses cuenta corriente", realized));
 
     // Dividendos de acciones públicas (trimestral: mar, jun, sep, dic)
     if (month % 3 === 0) {
-      const publicDivs = securities.filter((s) => s.assetClass === "MERCADOS_PUBLICOS").reduce((a, s) => a + s.dividendsLTM, 0);
+      const publicDivs = securities.filter((s) => s.assetClass === "MERCADOS_PUBLICOS").reduce((a, s) => a + (s.dividendsLTM ?? 0), 0);
       out.push(tx(`${ym}-25`, "andes", "DIVIDENDOS", "INGRESO", (publicDivs / 4) * g, "Dividendos cartera de acciones", realized));
     }
 
     // Dividendos de empresas privadas (según participación de la entidad dueña)
     companies.forEach((co) => {
-      if (co.dividendsLTM === 0) return;
+      if (!co.dividendsLTM) return;
       const schedule: Record<string, number[]> = {
         "co-desarrollos-cordillera": [5, 11],
         "co-logistica-andina": [4],

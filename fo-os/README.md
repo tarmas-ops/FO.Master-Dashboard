@@ -2,11 +2,11 @@
 
 Sistema operativo de family office: patrimonio, liquidez, riesgo, deuda, rendimiento y
 oportunidades en una sola base coherente. Next.js + TypeScript estricto + Tailwind +
-Recharts, con datos ficticios completamente tipados.
+Recharts, sobre los datos reales del archivo maestro.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
+npm run dev          # http://localhost:3000 (datos reales; NEXT_PUBLIC_DATASET=demo para la base ficticia)
 npm run reconcile    # imprime las cifras maestras y verifica la conciliación
 npm run typecheck
 npm run lint
@@ -91,12 +91,41 @@ Ninguna vive dentro de un componente React.
 
 ## Datos
 
-Ficticios y coherentes: 6 activos inmobiliarios, 4 empresas privadas, 3 fondos de private
-equity, 10 posiciones líquidas, caja, 5 créditos y 4 sociedades. Aproximadamente
-**$18.500 MM** en activos, **$3.500 MM** de deuda y **$15.000 MM** de patrimonio neto.
-Dos activos están deliberadamente en problemas (Costa Lodge con DSCR 1,05x y vencimiento
-puente en 2027; Centro Comercial Sur con LTV sobre política), y sus tesis y decisiones
-registradas lo reflejan.
+Hay dos bases, y `NEXT_PUBLIC_DATASET` elige cuál se usa:
+
+| Valor | Base | Contenido |
+| --- | --- | --- |
+| `real` (por defecto) | `data/real/dataset.json` | Exportado desde `FO_Master_Consolidado.xlsx` |
+| `demo` | `data/*.ts` | Ficticia y completa, para mostrar el producto entero |
+
+### Base real
+
+`scripts/export_real_dataset.py` (en la raíz del repo) recalcula el Excel con LibreOffice
+headless, lo parsea con `src/data_loader.py` y emite `data/real/dataset.json` con la forma de
+`Database`. Se regenera con:
+
+```bash
+python3 scripts/export_real_dataset.py   # desde la raíz del repo
+```
+
+Trae 46 entidades, 112 activos, 5 pasivos y 2.635 movimientos proyectados. **Solo se carga lo
+que el archivo contiene.** Los campos que el Excel no registra —NOI, arriendos, ocupación,
+WALE, costo de adquisición, EEFF de las sociedades, fondos privados, tasas de la deuda— son
+opcionales en el modelo y se muestran como `s/d`, nunca como cero: un inmueble sin NOI
+informado no es un inmueble con NOI cero, y un cap rate de 0% sería una cifra inventada.
+Cada ausencia queda declarada en `dataCoverage.gaps` y se ve en **Configuración → Brechas de
+Datos**, junto a una conciliación línea por línea contra el balance del propio Excel.
+
+Los módulos sin fuente (mercados privados, pipeline, documentos, histórico de flujo) muestran
+un estado vacío que explica qué falta cargar, en vez de un dashboard con ceros.
+
+### Base demo
+
+6 activos inmobiliarios, 4 empresas privadas, 3 fondos de private equity, 10 posiciones
+líquidas, caja, 5 créditos y 4 sociedades. Aproximadamente **$18.500 MM** en activos,
+**$3.500 MM** de deuda y **$15.000 MM** de patrimonio neto. Dos activos están deliberadamente
+en problemas (Costa Lodge con DSCR 1,05x y vencimiento puente en 2027; Centro Comercial Sur
+con LTV sobre política), y sus tesis y decisiones registradas lo reflejan.
 
 ## Migrar a PostgreSQL
 

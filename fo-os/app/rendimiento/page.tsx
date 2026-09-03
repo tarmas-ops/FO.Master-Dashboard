@@ -15,7 +15,7 @@ import {
   returnsByClass,
   type Period,
 } from "@/lib/calculos";
-import { formatCLP, formatMultiple, formatPct } from "@/lib/formatters";
+import { formatCLP, formatMultiple, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Rendimiento · Family Office OS" };
 
@@ -56,7 +56,9 @@ export default function RendimientoPage() {
           <CardHeader>
             <div>
               <CardTitle>Evolución del Patrimonio Neto</CardTitle>
-              <p className="mt-1 text-[13px] text-muted">Retorno acumulado desde 2021</p>
+              <p className="mt-1 text-[13px] text-muted">
+                {series.length > 1 ? `Retorno acumulado desde ${series[0]?.year}` : "Un solo cierre en la fuente: aún no hay serie histórica"}
+              </p>
             </div>
             <span className="tnum text-[15px] font-semibold text-positive">{ytd ? formatPct(ytd.value, { sign: true }) : "—"}</span>
           </CardHeader>
@@ -71,6 +73,12 @@ export default function RendimientoPage() {
             <span className="text-[12px] text-muted">Últimos 12 meses</span>
           </CardHeader>
           <CardContent className="pt-0">
+            {bridge.length === 0 ? (
+              <p className="py-10 text-center text-[13px] leading-relaxed text-muted">
+                El bridge compara el patrimonio contra el cierre anterior. La fuente aporta un solo corte, así que todavía no hay contra qué
+                comparar; al cargar el cierre del año pasado, este bloque se completa solo.
+              </p>
+            ) : (
             <ul className="divide-y divide-border">
               {bridge.map((s) => (
                 <li key={s.label} className="flex items-baseline justify-between gap-3 py-2">
@@ -85,6 +93,7 @@ export default function RendimientoPage() {
                 </li>
               ))}
             </ul>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -108,13 +117,13 @@ export default function RendimientoPage() {
                 {returns.map((r) => (
                   <TableRow key={r.assetClass}>
                     <TableCell className="font-medium">{ASSET_CLASS_LABELS[r.assetClass]}</TableCell>
-                    <TableCell className="text-right">{formatCLP(r.invested)}</TableCell>
+                    <TableCell className="text-right">{formatOr(r.invested, (v) => formatCLP(v))}</TableCell>
                     <TableCell className="text-right">{formatCLP(r.currentValue)}</TableCell>
-                    <TableCell className={`text-right ${r.unrealizedGain >= 0 ? "text-positive" : "text-negative"}`}>
-                      {formatCLP(r.unrealizedGain, { sign: true })}
+                    <TableCell className={`text-right ${(r.unrealizedGain ?? 0) >= 0 ? "text-positive" : "text-negative"}`}>
+                      {formatOr(r.unrealizedGain, (v) => formatCLP(v, { sign: true }))}
                     </TableCell>
-                    <TableCell className={`text-right ${r.simpleReturn >= 0 ? "text-positive" : "text-negative"}`}>
-                      {formatPct(r.simpleReturn, { sign: true })}
+                    <TableCell className={`text-right ${(r.simpleReturn ?? 0) >= 0 ? "text-positive" : "text-negative"}`}>
+                      {formatOr(r.simpleReturn, (v) => formatPct(v, { sign: true }))}
                     </TableCell>
                     <TableCell className="text-right text-muted">{r.cashYieldLTM > 0 ? formatPct(r.cashYieldLTM) : "—"}</TableCell>
                   </TableRow>
@@ -145,10 +154,10 @@ export default function RendimientoPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric label="Cap Rate" value={formatPct(re.weightedCapRate)} />
-              <Metric label="NOI" value={formatCLP(re.totalNOI)} />
+              <Metric label="Cap Rate" value={formatOr(re.weightedCapRate, formatPct)} />
+              <Metric label="NOI" value={formatOr(re.totalNOI, (v) => formatCLP(v))} />
               <Metric label="LTV" value={formatPct(re.weightedLTV)} />
-              <Metric label="Ocupación" value={formatPct(re.weightedOccupancy)} />
+              <Metric label="Ocupación" value={formatOr(re.weightedOccupancy, formatPct)} />
             </div>
           </CardContent>
         </Card>

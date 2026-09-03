@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_SECTIONS } from "./nav-config";
 
-export function Sidebar({ familyOfficeName }: { familyOfficeName: string }) {
+export function Sidebar({ familyOfficeName, dataLabel }: { familyOfficeName: string; dataLabel: string }) {
   const pathname = usePathname();
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-card lg:flex">
@@ -43,7 +43,7 @@ export function Sidebar({ familyOfficeName }: { familyOfficeName: string }) {
         ))}
       </nav>
       <div className="border-t border-border px-5 py-3">
-        <p className="text-[11px] text-muted-2">Datos ficticios — demo</p>
+        <p className="text-[11px] text-muted-2">{dataLabel}</p>
       </div>
     </aside>
   );

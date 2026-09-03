@@ -29,7 +29,7 @@ import {
   returnsByClass,
   trailingMonths,
 } from "@/lib/calculos";
-import { formatCLP, formatPct } from "@/lib/formatters";
+import { formatCLP, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Resumen General · Family Office OS" };
 
@@ -45,7 +45,10 @@ export default function ResumenPage() {
   const alerts = calculatePortfolioAlerts(db);
   const top = calculateTopExposures(db, 5);
   const returns = returnsByClass(db);
-  const ytdReturn = current.changePct ?? 0;
+  // Sin cierre anterior no hay variación: se muestra "s/d" en vez de un 0,0% que parecería
+  // un año plano. Lo mismo con el flujo, cuando la fuente solo trae proyección.
+  const ytdReturn = current.changePct ?? null;
+  const hasHistory = ltm.months.some((m) => m.income !== 0 || m.expenses !== 0);
 
   const holdings = db.entities
     .filter((e) => e.entityType === "HOLDING")
@@ -65,8 +68,16 @@ export default function ResumenPage() {
         <MetricCard label="Deuda Total" value={formatCLP(nw.totalDebt)} hint={`${formatPct(nw.totalDebt / nw.totalAssets)} de los activos`} />
         <MetricCard label="Patrimonio Neto" value={formatCLP(nw.netWorth)} delta={current.changePct} hint="vs. cierre anterior" />
         <MetricCard label="Liquidez Disponible" value={formatCLP(liq.grossLiquidity)} hint="Caja + líquidos + líneas" />
-        <MetricCard label="Flujo Últimos 12 Meses" value={formatCLP(ltm.net)} hint={`Ingresos ${formatCLP(ltm.income)}`} />
-        <MetricCard label="Retorno YTD" value={formatPct(ytdReturn, { sign: true })} hint="Patrimonio neto" />
+        <MetricCard
+          label="Flujo Últimos 12 Meses"
+          value={hasHistory ? formatCLP(ltm.net) : "s/d"}
+          hint={hasHistory ? `Ingresos ${formatCLP(ltm.income)}` : "Sin meses cerrados en la fuente"}
+        />
+        <MetricCard
+          label="Retorno YTD"
+          value={formatOr(ytdReturn, (v) => formatPct(v, { sign: true }))}
+          hint={ytdReturn === null ? "Sin cierre anterior con que comparar" : "Patrimonio neto"}
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -74,11 +85,15 @@ export default function ResumenPage() {
           <CardHeader>
             <div>
               <CardTitle>Evolución del Patrimonio Neto</CardTitle>
-              <p className="mt-1 text-[13px] text-muted">Últimos 5 años y año en curso</p>
+              <p className="mt-1 text-[13px] text-muted">
+                {series.length > 1 ? "Últimos 5 años y año en curso" : "Un solo corte en la fuente: aún no hay serie histórica"}
+              </p>
             </div>
             <div className="text-right">
               <p className="tnum text-[15px] font-semibold text-foreground">{formatCLP(current.netWorth)}</p>
-              <p className="tnum text-[12px] text-positive">{formatPct(current.changePct ?? 0, { sign: true })} en el año</p>
+              <p className="tnum text-[12px] text-positive">
+                {ytdReturn === null ? "s/d en el año" : `${formatPct(ytdReturn, { sign: true })} en el año`}
+              </p>
             </div>
           </CardHeader>
           <CardContent>
@@ -176,14 +191,19 @@ export default function ResumenPage() {
               </TableHeader>
               <TableBody>
                 {top.map((t) => {
-                  const ret = t.asset.acquisitionCost > 0 ? t.asset.currentValue / t.asset.acquisitionCost - 1 : 0;
+                  const ret =
+                    t.asset.acquisitionCost !== undefined && t.asset.acquisitionCost > 0
+                      ? t.asset.currentValue / t.asset.acquisitionCost - 1
+                      : null;
                   return (
                     <TableRow key={t.asset.id}>
                       <TableCell className="font-medium">{t.asset.name}</TableCell>
                       <TableCell className="text-muted">{ASSET_CLASS_LABELS[t.asset.assetClass]}</TableCell>
                       <TableCell className="text-right">{formatCLP(t.economicValue)}</TableCell>
                       <TableCell className="text-right">{formatPct(t.shareOfNetWorth)}</TableCell>
-                      <TableCell className={`text-right ${ret >= 0 ? "text-positive" : "text-negative"}`}>{formatPct(ret, { sign: true })}</TableCell>
+                      <TableCell className={`text-right ${(ret ?? 0) >= 0 ? "text-positive" : "text-negative"}`}>
+                        {formatOr(ret, (v) => formatPct(v, { sign: true }))}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -202,8 +222,8 @@ export default function ResumenPage() {
             <Card key={r.assetClass}>
               <CardContent className="px-5 py-4">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{ASSET_CLASS_LABELS[r.assetClass]}</p>
-                <p className={`tnum mt-1.5 text-[20px] font-semibold leading-none ${r.simpleReturn >= 0 ? "text-foreground" : "text-negative"}`}>
-                  {formatPct(r.simpleReturn, { sign: true })}
+                <p className={`tnum mt-1.5 text-[20px] font-semibold leading-none ${(r.simpleReturn ?? 0) >= 0 ? "text-foreground" : "text-negative"}`}>
+                  {formatOr(r.simpleReturn, (v) => formatPct(v, { sign: true }))}
                 </p>
                 <div className="mt-2 flex items-center gap-2">
                   <Badge variant="outline">{formatCLP(r.currentValue)}</Badge>

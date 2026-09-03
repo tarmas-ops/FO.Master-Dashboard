@@ -1,3 +1,4 @@
+import { DataGapNotice } from "@/components/dashboard/DataGapNotice";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { GroupedBarChart } from "@/components/graficos/GroupedBarChart";
 import { PageHeader } from "@/components/navegacion/PageHeader";
@@ -30,6 +31,7 @@ function quarterlyFlows() {
 
 export default function MercadosPrivadosPage() {
   const s = privateMarketsSummary(db);
+  const hasFunds = s.rows.length > 0;
 
   const columns: TableColumn[] = [
     { key: "name", header: "Inversión" },
@@ -69,6 +71,14 @@ export default function MercadosPrivadosPage() {
         subtitle="¿Cómo están rindiendo nuestras inversiones ilíquidas? Métricas calculadas desde capital calls, distribuciones y NAV reportado."
       />
 
+      {!hasFunds ? (
+        <DataGapNotice title="Sin fondos privados registrados en la fuente">
+          El archivo maestro no incluye compromisos en fondos de private equity, venture capital ni deuda privada, así que no hay capital
+          llamado, distribuciones ni NAV desde donde calcular MOIC, DPI, TVPI o IRR. Al cargar los compromisos y los estados de cuenta de cada
+          gestor, este módulo se completa solo.
+        </DataGapNotice>
+      ) : (
+      <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
         <MetricCard label="Capital Comprometido" value={formatCLP(s.committed)} />
         <MetricCard label="Capital Invertido" value={formatCLP(s.called)} hint={`Pendiente ${formatCLP(s.pending)}`} />
@@ -104,6 +114,8 @@ export default function MercadosPrivadosPage() {
           </CardContent>
         </Card>
       </div>
+      </>
+      )}
     </>
   );
 }

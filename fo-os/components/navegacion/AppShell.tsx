@@ -3,10 +3,20 @@ import { CommandBar } from "./CommandBar";
 import { MobileNav } from "./MobileNav";
 import { Sidebar } from "./Sidebar";
 
-export function AppShell({ familyOfficeName, asOf, children }: { familyOfficeName: string; asOf: string; children: React.ReactNode }) {
+export function AppShell({
+  familyOfficeName,
+  asOf,
+  dataLabel,
+  children,
+}: {
+  familyOfficeName: string;
+  asOf: string;
+  dataLabel: string;
+  children: React.ReactNode;
+}) {
   return (
     <TooltipProvider delayDuration={150}>
-      <Sidebar familyOfficeName={familyOfficeName} />
+      <Sidebar familyOfficeName={familyOfficeName} dataLabel={dataLabel} />
       <div className="lg:pl-60">
         <div className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur lg:px-8">
           <MobileNav />

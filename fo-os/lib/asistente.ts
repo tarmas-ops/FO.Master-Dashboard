@@ -15,7 +15,7 @@ import {
   familyOwnershipOfEntity,
   realEstatePortfolio,
 } from "@/lib/calculos";
-import { formatCLP, formatPct } from "@/lib/formatters";
+import { formatCLP, formatOr, formatPct } from "@/lib/formatters";
 
 export const EXAMPLE_QUESTIONS = [
   "¿Cuál es nuestra exposición inmobiliaria?",
@@ -48,7 +48,7 @@ export function answerQuestion(question: string): string {
   if (q.includes("inmobiliari")) {
     const re = realEstatePortfolio(db);
     const row = calculateEconomicExposure(db).find((e) => e.key === "INMOBILIARIO");
-    return `La exposición económica inmobiliaria es ${formatCLP(row?.value ?? 0)} (${formatPct(row?.share ?? 0)} de los activos), en ${re.rows.length} activos. Deuda asociada ${formatCLP(re.economicDebt)}, LTV promedio ${formatPct(re.weightedLTV)}, NOI total ${formatCLP(re.totalNOI)} y cap rate ${formatPct(re.weightedCapRate)}.`;
+    return `La exposición económica inmobiliaria es ${formatCLP(row?.value ?? 0)} (${formatPct(row?.share ?? 0)} de los activos), en ${re.rows.length} activos. Deuda asociada ${formatCLP(re.economicDebt)}, LTV promedio ${formatPct(re.weightedLTV)}, NOI total ${formatOr(re.totalNOI, formatCLP)} y cap rate ${formatOr(re.weightedCapRate, formatPct)}.`;
   }
 
   if (q.includes("capital") && (q.includes("invertir") || q.includes("desplegar") || q.includes("capacidad"))) {

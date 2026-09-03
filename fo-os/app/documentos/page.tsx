@@ -1,3 +1,4 @@
+import { DataGapNotice } from "@/components/dashboard/DataGapNotice";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { DOCUMENT_TYPE_LABELS } from "@/components/inversiones/DocumentList";
 import { PageHeader } from "@/components/navegacion/PageHeader";
@@ -59,6 +60,13 @@ export default function DocumentosPage() {
         subtitle="¿Dónde está la documentación de cada activo? Contratos, tasaciones, escrituras y memos, asociados a su entidad, activo, crédito u oportunidad."
       />
 
+      {db.documents.length === 0 ? (
+        <DataGapNotice title="Sin documentos cargados">
+          El archivo maestro es una planilla de cifras: no lleva adjuntos. Este módulo queda listo para recibir escrituras, tasaciones,
+          contratos de arriendo, estatutos y estados financieros, y asociarlos a su activo, entidad, crédito u oportunidad.
+        </DataGapNotice>
+      ) : (
+      <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Documentos" value={String(db.documents.length)} />
         <MetricCard label="Asociados a Activos" value={String(byScope.activos)} />
@@ -69,6 +77,8 @@ export default function DocumentosPage() {
       <div className="mt-6">
         <DataTable rows={rows} columns={columns} searchPlaceholder="Buscar documento, tipo o activo…" initialSort={{ key: "date", dir: "desc" }} />
       </div>
+      </>
+      )}
     </>
   );
 }

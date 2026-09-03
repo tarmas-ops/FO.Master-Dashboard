@@ -61,28 +61,33 @@ export function calculateInvestmentPerformanceVsPlan(db: Database, asset: Asset)
 
   if (asset.assetClass === "INMOBILIARIO") {
     const m = realEstateMetrics(db, asset);
-    actualNOI = asset.noi;
-    actualIRR = directAssetIRR(thesis.investmentDate, thesis.initialEquity, asset.noi - m.annualDebtService, eq.equity, db.asOf);
+    actualNOI = m.noi;
+    // Sin NOI informado no hay flujo que descontar: el IRR queda en revisión, no en cero.
+    actualIRR = m.noi === null ? null : directAssetIRR(thesis.investmentDate, thesis.initialEquity, m.noi - m.annualDebtService, eq.equity, db.asOf);
     actualMOIC = thesis.initialEquity > 0 ? eq.equity / thesis.initialEquity : null;
     if (thesis.expectedNOI !== undefined) {
-      const v = (asset.noi - thesis.expectedNOI) / thesis.expectedNOI;
-      comparisons.push({ metric: "NOI", actual: asset.noi, expected: thesis.expectedNOI, variance: v, format: "clp", status: statusFromVariance(v, 0.05) });
+      const v = m.noi === null ? null : (m.noi - thesis.expectedNOI) / thesis.expectedNOI;
+      comparisons.push({ metric: "NOI", actual: m.noi, expected: thesis.expectedNOI, variance: v, format: "clp", status: statusFromVariance(v, 0.05) });
     }
     if (thesis.expectedOccupancy !== undefined) {
-      const v = asset.occupancy - thesis.expectedOccupancy;
-      comparisons.push({ metric: "Ocupación", actual: asset.occupancy, expected: thesis.expectedOccupancy, variance: v, format: "pct", status: statusFromVariance(v, 0.03) });
+      const occupancy = asset.occupancy ?? null;
+      const v = occupancy === null ? null : occupancy - thesis.expectedOccupancy;
+      comparisons.push({ metric: "Ocupación", actual: occupancy, expected: thesis.expectedOccupancy, variance: v, format: "pct", status: statusFromVariance(v, 0.03) });
     }
     if (thesis.expectedLTV !== undefined) {
       const v = m.ltv - thesis.expectedLTV;
       comparisons.push({ metric: "LTV", actual: m.ltv, expected: thesis.expectedLTV, variance: v, format: "pct", status: statusFromVariance(v, 0.05, false) });
     }
-    const cocV = m.cashOnCash - thesis.targetCashOnCash;
+    const cocV = m.cashOnCash === null ? null : m.cashOnCash - thesis.targetCashOnCash;
     comparisons.push({ metric: "Cash-on-Cash", actual: m.cashOnCash, expected: thesis.targetCashOnCash, variance: cocV, format: "pct", status: statusFromVariance(cocV, 0.015) });
     if (thesis.targetExitCapRate !== undefined) {
-      const v = m.capRate - thesis.targetExitCapRate;
+      const v = m.capRate === null ? null : m.capRate - thesis.targetExitCapRate;
       comparisons.push({ metric: "Cap Rate", actual: m.capRate, expected: thesis.targetExitCapRate, variance: v, format: "pct", status: statusFromVariance(v, 0.005, false) });
     }
-    const unlevered = unleveredAssetIRR(thesis.investmentDate, asset.acquisitionCost, asset.noi, asset.currentValue, db.asOf);
+    const unlevered =
+      asset.acquisitionCost === undefined || m.noi === null
+        ? null
+        : unleveredAssetIRR(thesis.investmentDate, asset.acquisitionCost, m.noi, asset.currentValue, db.asOf);
     if (unlevered !== null) {
       comparisons.push({ metric: "IRR Sin Apalancamiento", actual: unlevered, expected: thesis.entryCapRate ?? null, variance: null, format: "pct", status: "EN_LINEA" });
     }
@@ -93,7 +98,7 @@ export function calculateInvestmentPerformanceVsPlan(db: Database, asset: Asset)
     const mv = fm.moic - thesis.targetMOIC * Math.min(1, (new Date(db.asOf).getFullYear() - asset.vintage) / thesis.expectedHoldPeriod + 0.35);
     comparisons.push({ metric: "MOIC vs. curva esperada", actual: fm.moic, expected: thesis.targetMOIC, variance: mv, format: "multiple", status: statusFromVariance(mv, 0.15) });
   } else {
-    actualIRR = directAssetIRR(thesis.investmentDate, thesis.initialEquity, asset.assetClass === "EMPRESAS_PRIVADAS" ? asset.dividendsLTM * asset.ownershipPercentage : 0, eq.attributableEquity / Math.max(eq.familyShare, 1e-9) * asset.ownershipPercentage, db.asOf);
+    actualIRR = directAssetIRR(thesis.investmentDate, thesis.initialEquity, asset.assetClass === "EMPRESAS_PRIVADAS" ? (asset.dividendsLTM ?? 0) * asset.ownershipPercentage : 0, eq.attributableEquity / Math.max(eq.familyShare, 1e-9) * asset.ownershipPercentage, db.asOf);
     actualMOIC = thesis.initialEquity > 0 ? (eq.equity * asset.ownershipPercentage) / thesis.initialEquity : null;
   }
 

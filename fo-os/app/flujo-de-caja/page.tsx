@@ -1,4 +1,5 @@
 import { CashFlowBreakdown } from "@/components/dashboard/CashFlowBreakdown";
+import { DataGapNotice } from "@/components/dashboard/DataGapNotice";
 import { InvestmentFirepowerCard } from "@/components/dashboard/InvestmentFirepowerCard";
 import { LiquidityForecast } from "@/components/dashboard/LiquidityForecast";
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -21,6 +22,10 @@ export default function FlujoDeCajaPage() {
   const last12 = calculateCashFlow(db, ltm.from, ltm.to, true);
   const coverages = [3, 6, 12, 24].map((h) => calculateLiquidityCoverage(db, h));
   const fp = calculateInvestmentFirepower(db);
+  // La fuente puede traer solo proyección (un presupuesto hacia adelante) y ningún mes
+  // cerrado. En ese caso la pestaña histórica se explica en vez de mostrar un gráfico plano.
+  const hasHistory = historical.months.some((m) => m.income !== 0 || m.expenses !== 0);
+  const historyHint = hasHistory ? undefined : "Sin meses cerrados en la fuente";
 
   return (
     <>
@@ -31,20 +36,28 @@ export default function FlujoDeCajaPage() {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Ingresos 12 Meses" value={formatCLP(last12.income)} />
-        <MetricCard label="Egresos 12 Meses" value={formatCLP(last12.expenses)} />
-        <MetricCard label="Flujo Neto 12 Meses" value={formatCLP(last12.net, { sign: true })} />
+        <MetricCard label="Ingresos 12 Meses" value={hasHistory ? formatCLP(last12.income) : "s/d"} hint={historyHint} />
+        <MetricCard label="Egresos 12 Meses" value={hasHistory ? formatCLP(last12.expenses) : "s/d"} hint={historyHint} />
+        <MetricCard label="Flujo Neto 12 Meses" value={hasHistory ? formatCLP(last12.net, { sign: true }) : "s/d"} hint={historyHint} />
         <MetricCard label="Flujo Proyectado 24 Meses" value={formatCLP(projected.net, { sign: true })} hint="Compromisos ya conocidos" />
       </div>
 
       <div className="mt-6">
-        <Tabs defaultValue="historico">
+        <Tabs defaultValue={hasHistory ? "historico" : "proyectado"}>
           <TabsList>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
             <TabsTrigger value="proyectado">Proyectado</TabsTrigger>
           </TabsList>
 
           <TabsContent value="historico">
+            {!hasHistory ? (
+              <DataGapNotice title="Sin meses cerrados en la fuente">
+                El archivo maestro contiene la proyección de flujo hacia adelante, no el histórico de movimientos ya ocurridos. Al cargar las
+                cartolas o el libro de caja de meses anteriores, esta pestaña se completa sola. Mientras tanto, la proyección de la pestaña
+                siguiente sí proviene del archivo.
+              </DataGapNotice>
+            ) : (
+            <>
             <Card>
               <CardHeader>
                 <div>
@@ -69,6 +82,8 @@ export default function FlujoDeCajaPage() {
                 <CashFlowBreakdown cf={historical} />
               </CardContent>
             </Card>
+            </>
+            )}
           </TabsContent>
 
           <TabsContent value="proyectado">

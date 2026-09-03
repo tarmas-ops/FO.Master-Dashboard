@@ -58,6 +58,12 @@ export default function MovimientosPage() {
     ],
   }));
 
+  // El rango real del ledger se lee de los propios movimientos, no de un supuesto fijo.
+  const dates = db.transactions.map((t) => t.date).sort();
+  const rangeHint = dates.length > 0 ? `${formatDate(dates[0]!)} a ${formatDate(dates[dates.length - 1]!)}` : undefined;
+  const hasHistory = ltm.months.some((m) => m.income !== 0 || m.expenses !== 0);
+  const historyHint = hasHistory ? undefined : "Sin meses cerrados en la fuente";
+
   return (
     <>
       <PageHeader
@@ -67,10 +73,10 @@ export default function MovimientosPage() {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Movimientos Registrados" value={String(db.transactions.length)} hint="24 meses históricos + 24 proyectados" />
-        <MetricCard label="Ingresos 12 Meses" value={formatCLP(ltm.income)} />
-        <MetricCard label="Egresos 12 Meses" value={formatCLP(ltm.expenses)} />
-        <MetricCard label="Flujo Neto 12 Meses" value={formatCLP(ltm.net, { sign: true })} />
+        <MetricCard label="Movimientos Registrados" value={String(db.transactions.length)} hint={rangeHint} />
+        <MetricCard label="Ingresos 12 Meses" value={hasHistory ? formatCLP(ltm.income) : "s/d"} hint={historyHint} />
+        <MetricCard label="Egresos 12 Meses" value={hasHistory ? formatCLP(ltm.expenses) : "s/d"} hint={historyHint} />
+        <MetricCard label="Flujo Neto 12 Meses" value={hasHistory ? formatCLP(ltm.net, { sign: true }) : "s/d"} hint={historyHint} />
       </div>
 
       <div className="mt-6">

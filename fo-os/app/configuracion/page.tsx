@@ -4,15 +4,19 @@ import { PageHeader } from "@/components/navegacion/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { db } from "@/data";
+import { activeDataset, db } from "@/data";
 import { ALERT_THRESHOLDS, calculateNetWorth, validatePortfolioConsistency } from "@/lib/calculos";
-import { formatCLP, formatDate, formatNumber, formatPct } from "@/lib/formatters";
+import { formatCLP, formatDate, formatNumber, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Configuración · Family Office OS" };
 
 export default function ConfiguracionPage() {
   const issues = validatePortfolioConsistency(db);
   const nw = calculateNetWorth(db);
+  const coverage = db.dataCoverage;
+  // La fuente puede listar a los miembros sin repartir participaciones entre ellos; en ese
+  // caso la columna se omite en vez de mostrar 0% para todos.
+  const hasFamilyShares = db.persons.some((p) => p.familyShare > 0);
 
   return (
     <>
@@ -26,8 +30,8 @@ export default function ConfiguracionPage() {
           </CardHeader>
           <CardContent>
             <StatRow label="Moneda base" value={db.familyOffice.baseCurrency} />
-            <StatRow label="UF" value={`$${formatNumber(db.fx.UF, 2)}`} />
-            <StatRow label="USD" value={`$${formatNumber(db.fx.USD, 2)}`} />
+            <StatRow label="UF" value={formatOr(db.fx.UF > 0 ? db.fx.UF : null, (v) => `$${formatNumber(v, 2)}`)} />
+            <StatRow label="USD" value={formatOr(db.fx.USD > 0 ? db.fx.USD : null, (v) => `$${formatNumber(v, 2)}`)} />
             <p className="mt-3 text-[12px] text-muted">
               Los valores de los activos se almacenan en CLP; la moneda de cada activo indica su exposición económica, que alimenta el informe de
               exposición cambiaria.
@@ -40,7 +44,10 @@ export default function ConfiguracionPage() {
             <CardTitle>Políticas de Inversión</CardTitle>
           </CardHeader>
           <CardContent>
-            <StatRow label="Reserva mínima de liquidez" value={formatCLP(db.familyOffice.minimumLiquidityReserve)} />
+            <StatRow
+              label="Reserva mínima de liquidez"
+              value={formatOr(db.familyOffice.minimumLiquidityReserve > 0 ? db.familyOffice.minimumLiquidityReserve : null, (v) => formatCLP(v))}
+            />
             <StatRow label="LTV máximo de política" value={formatPct(db.familyOffice.maxPolicyLTV, { decimals: 0 })} />
             <StatRow label="DSCR mínimo" value={`${formatNumber(ALERT_THRESHOLDS.minDSCR, 1)}x`} />
             <StatRow label="Concentración máxima por activo" value={formatPct(ALERT_THRESHOLDS.maxSingleAssetShare, { decimals: 0 })} />
@@ -99,7 +106,7 @@ export default function ConfiguracionPage() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead>Nombre</TableHead>
                   <TableHead>Rol</TableHead>
-                  <TableHead className="text-right">Participación Familiar</TableHead>
+                  {hasFamilyShares ? <TableHead className="text-right">Participación Familiar</TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -107,7 +114,7 @@ export default function ConfiguracionPage() {
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="text-muted">{p.role}</TableCell>
-                    <TableCell className="text-right">{formatPct(p.familyShare, { decimals: 0 })}</TableCell>
+                    {hasFamilyShares ? <TableCell className="text-right">{formatPct(p.familyShare, { decimals: 0 })}</TableCell> : null}
                   </TableRow>
                 ))}
               </TableBody>
@@ -119,18 +126,117 @@ export default function ConfiguracionPage() {
       <div className="mt-4">
         <Card>
           <CardHeader>
-            <CardTitle>Origen de los Datos</CardTitle>
+            <div>
+              <CardTitle>Origen de los Datos</CardTitle>
+              {coverage ? <p className="mt-1 text-[13px] text-muted">{coverage.source} · cargado {coverage.loadedAt}</p> : null}
+            </div>
+            <Badge variant={activeDataset === "real" ? "positive" : "outline"}>{activeDataset === "real" ? "Datos reales" : "Datos de demostración"}</Badge>
           </CardHeader>
           <CardContent>
-            <p className="text-[13px] leading-relaxed text-foreground">
-              Esta versión usa datos ficticios completamente tipados, definidos en <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/data</code>{" "}
-              y consumidos a través del motor financiero en <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/lib/calculos</code>. El
-              esquema de PostgreSQL equivalente está en <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/prisma/schema.prisma</code>:
-              migrar a base de datos real solo requiere reemplazar la carga de datos, sin tocar la lógica financiera ni las páginas.
-            </p>
+            {coverage ? (
+              <>
+                <p className="text-[13px] leading-relaxed text-foreground">
+                  Las cifras provienen del archivo maestro, recalculado con LibreOffice y exportado por{" "}
+                  <code className="rounded bg-hover px-1 py-0.5 text-[12px]">scripts/export_real_dataset.py</code>. Solo se carga lo que el
+                  archivo contiene: los campos que no existen quedan en blanco, nunca en cero.
+                </p>
+                {coverage.excelTotals ? (
+                  <div className="mt-4">
+                    <StatRow label="Activos según el Excel" value={formatCLP(coverage.excelTotals.totalActivos)} />
+                    <StatRow label="Activos cargados en la app" value={formatCLP(nw.totalAssets)} />
+                    <StatRow label="Pasivos según el Excel" value={formatCLP(coverage.excelTotals.totalPasivos)} />
+                    <StatRow label="Pasivos cargados en la app" value={formatCLP(nw.totalDebt)} />
+                    <StatRow
+                      label="Diferencia en activos"
+                      value={formatCLP(nw.totalAssets - coverage.excelTotals.totalActivos, { sign: true })}
+                      strong
+                    />
+                  </div>
+                ) : null}
+                {coverage.reconciliation && coverage.reconciliation.length > 0 ? (
+                  <div className="mt-5">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted">Conciliación por línea del balance</p>
+                    <Table className="mt-2">
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead>Concepto</TableHead>
+                          <TableHead className="text-right">Balance del Excel</TableHead>
+                          <TableHead className="text-right">Cargado en la app</TableHead>
+                          <TableHead className="text-right">Diferencia</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {coverage.reconciliation.map((r) => {
+                          // Redondeo a la unidad: diferencias de centavos son ruido de punto flotante.
+                          const diff = Math.round(r.difference);
+                          return (
+                            <TableRow key={r.concept}>
+                              <TableCell className="font-medium">{r.concept}</TableCell>
+                              <TableCell className="text-right">{formatCLP(r.excel)}</TableCell>
+                              <TableCell className="text-right">{formatCLP(r.app)}</TableCell>
+                              <TableCell className={`text-right ${diff === 0 ? "text-muted" : "text-negative"}`}>
+                                {diff === 0 ? "—" : formatCLP(diff, { sign: true })}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                    <p className="mt-3 text-[12px] leading-relaxed text-muted">
+                      Una diferencia no significa que la app cargó mal: significa que la hoja de balance del Excel no coincide con el detalle de
+                      sus propias pestañas. La app carga el detalle, que es la fuente primaria.
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-[13px] leading-relaxed text-foreground">
+                Esta vista usa datos ficticios completamente tipados, definidos en{" "}
+                <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/data</code> y consumidos a través del motor financiero en{" "}
+                <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/lib/calculos</code>. El esquema de PostgreSQL equivalente está en{" "}
+                <code className="rounded bg-hover px-1 py-0.5 text-[12px]">/prisma/schema.prisma</code>: migrar a base de datos real solo
+                requiere reemplazar la carga de datos, sin tocar la lógica financiera ni las páginas.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {coverage && coverage.gaps.length > 0 ? (
+        <div className="mt-4">
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Brechas de Datos</CardTitle>
+                <p className="mt-1 text-[13px] text-muted">
+                  Qué falta cargar para que cada módulo funcione completo. Nada de esto se rellena con estimaciones.
+                </p>
+              </div>
+              <Badge variant="outline">{coverage.gaps.length} brechas</Badge>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Módulo</TableHead>
+                    <TableHead>Campo faltante</TableHead>
+                    <TableHead>Consecuencia</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {coverage.gaps.map((g, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium">{g.module}</TableCell>
+                      <TableCell>{g.field}</TableCell>
+                      <TableCell className="text-muted">{g.detail}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </>
   );
 }

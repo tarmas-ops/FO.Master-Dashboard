@@ -56,10 +56,11 @@ export function netWorthReturn(db: Database, period: Period): { value: number; f
 
 export interface ClassReturn {
   assetClass: AssetClass;
-  invested: number;
+  /** `null` cuando ningún activo de la clase registra costo de adquisición. */
+  invested: number | null;
   currentValue: number;
-  unrealizedGain: number;
-  simpleReturn: number;
+  unrealizedGain: number | null;
+  simpleReturn: number | null;
   cashYieldLTM: number;
 }
 
@@ -77,14 +78,18 @@ export function returnsByClass(db: Database): ClassReturn[] {
   const classes: AssetClass[] = ["INMOBILIARIO", "EMPRESAS_PRIVADAS", "MERCADOS_PRIVADOS", "MERCADOS_PUBLICOS", "RENTA_FIJA"];
   return classes.map((cls) => {
     const rows = eq.filter((e) => e.asset.assetClass === cls);
-    const invested = rows.reduce((a, e) => a + e.asset.acquisitionCost * e.familyShare, 0);
+    // Solo se computa costo cuando la fuente lo registra; si nadie en la clase lo trae,
+    // no hay base sobre la cual medir ganancia y la fila queda sin retorno, no en cero.
+    const costRows = rows.filter((e) => e.asset.acquisitionCost !== undefined);
+    const invested = costRows.length === 0 ? null : costRows.reduce((a, e) => a + (e.asset.acquisitionCost ?? 0) * e.familyShare, 0);
     const currentValue = rows.reduce((a, e) => a + e.economicValue, 0);
+    const costValue = costRows.reduce((a, e) => a + e.economicValue, 0);
     return {
       assetClass: cls,
       invested,
       currentValue,
-      unrealizedGain: currentValue - invested,
-      simpleReturn: invested > 0 ? currentValue / invested - 1 : 0,
+      unrealizedGain: invested === null ? null : costValue - invested,
+      simpleReturn: invested !== null && invested > 0 ? costValue / invested - 1 : null,
       cashYieldLTM: currentValue > 0 ? (cashByClass[cls] ?? 0) / currentValue : 0,
     };
   });
@@ -96,11 +101,15 @@ export interface BridgeStep {
   kind: "total" | "delta";
 }
 
-/** Bridge de patrimonio: inicial → ganancias → dividendos → aportes → retiros → impuestos → final. */
+/**
+ * Bridge de patrimonio: inicial → ganancias → dividendos → aportes → retiros → impuestos → final.
+ * Devuelve una lista vacía si la fuente no tiene un cierre anterior contra el cual comparar.
+ */
 export function netWorthBridge(db: Database): BridgeStep[] {
   const series = netWorthSeries(db);
   const start = series[series.length - 2];
   const end = series[series.length - 1];
+  if (!start || !end) return [];
   const { from, to } = trailingMonths(db.asOf, 12);
   const ltm = calculateCashFlow(db, from, to, true);
   const dividends = ltm.byCategory.DIVIDENDOS + ltm.byCategory.DISTRIBUCIONES + ltm.byCategory.INTERESES;

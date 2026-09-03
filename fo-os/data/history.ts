@@ -34,16 +34,21 @@ export const allocationTargets: AllocationTarget[] = [
  * adquisición hasta el valor actual. Determinista; Costa Lodge cae respecto a su costo.
  */
 export const valuations: Valuation[] = realEstate.flatMap((asset) => {
+  // Solo los activos con costo, fecha de adquisición y NOI registrados tienen trayectoria
+  // reconstruible. Si la fuente no los trae, el activo simplemente no aporta serie histórica.
+  if (asset.acquisitionDate === undefined || asset.acquisitionCost === undefined || asset.noi === undefined) return [];
+  const acquisitionCost = asset.acquisitionCost;
+  const assetNOI = asset.noi;
   const startYear = Number(asset.acquisitionDate.slice(0, 4));
   const years = [2022, 2023, 2024, 2025, 2026].filter((y) => y >= startYear);
   const firstYear = years[0] ?? 2026;
   const span = Math.max(2026 - firstYear, 1);
-  const startValue = firstYear === startYear ? asset.acquisitionCost : asset.acquisitionCost * Math.pow(asset.currentValue / asset.acquisitionCost, (firstYear - startYear) / Math.max(2026 - startYear, 1));
-  const noiStart = asset.noi * (asset.id === "re-costa-lodge" ? 1.35 : 0.82);
+  const startValue = firstYear === startYear ? acquisitionCost : acquisitionCost * Math.pow(asset.currentValue / acquisitionCost, (firstYear - startYear) / Math.max(2026 - startYear, 1));
+  const noiStart = assetNOI * (asset.id === "re-costa-lodge" ? 1.35 : 0.82);
   return years.map((year, i) => {
     const t = i / span;
     const value = year === 2026 ? asset.currentValue : startValue + (asset.currentValue - startValue) * t;
-    const noi = year === 2026 ? asset.noi : noiStart + (asset.noi - noiStart) * t;
+    const noi = year === 2026 ? assetNOI : noiStart + (assetNOI - noiStart) * t;
     return {
       id: `val-${asset.id}-${year}`,
       assetId: asset.id,

@@ -100,9 +100,14 @@ export interface AssetBase {
   currency: Currency;
   /** Valor 100% del activo, en CLP. */
   currentValue: number;
-  /** Costo de adquisición 100%, en CLP. */
-  acquisitionCost: number;
-  acquisitionDate: string;
+  /**
+   * Costo de adquisición 100%, en CLP. Opcional: el Excel maestro real no registra
+   * costo histórico por activo, y ausencia no es lo mismo que cero.
+   */
+  acquisitionCost?: number;
+  acquisitionDate?: string;
+  /** Campos del archivo fuente que no calzan en el modelo pero conviene conservar. */
+  sourceNotes?: Record<string, string | number | boolean | null>;
   /** Entidad que posee el activo directamente. */
   ownerEntityId: string;
   /** Participación directa de la entidad dueña sobre el activo (0–1). */
@@ -117,13 +122,14 @@ export interface RealEstateAsset extends AssetBase {
   realEstateType: RealEstateType;
   location: string;
   city: string;
-  surfaceM2: number;
+  /** Operacionales: opcionales porque el Excel real solo trae valorización. */
+  surfaceM2?: number;
   /** NOI anual (100%), CLP. */
-  noi: number;
+  noi?: number;
   /** Ingresos anuales brutos (100%), CLP. */
-  grossRent: number;
-  occupancy: number; // 0–1
-  wale: number; // años
+  grossRent?: number;
+  occupancy?: number; // 0–1
+  wale?: number; // años
   tenants: Tenant[];
 }
 
@@ -136,10 +142,11 @@ export interface Tenant {
 
 export interface CompanyInvestment extends AssetBase {
   assetClass: "EMPRESAS_PRIVADAS";
-  revenue: number;
-  ebitda: number;
-  netDebt: number;
-  dividendsLTM: number;
+  /** Estados financieros: opcionales, la mayoría de las sociedades reales no los tiene cargados. */
+  revenue?: number;
+  ebitda?: number;
+  netDebt?: number;
+  dividendsLTM?: number;
   history: Array<{ year: number; revenue: number; ebitda: number; dividends: number }>;
 }
 
@@ -159,11 +166,11 @@ export interface PublicSecurity extends AssetBase {
   assetClass: "MERCADOS_PUBLICOS" | "RENTA_FIJA";
   ticker: string;
   issuer: string;
-  shares: number;
-  /** Precio unitario en la moneda del instrumento. */
-  price: number;
-  dividendYield: number;
-  dividendsLTM: number;
+  /** Unidades y precio: opcionales, el Excel real solo registra el monto de la posición. */
+  shares?: number;
+  price?: number;
+  dividendYield?: number;
+  dividendsLTM?: number;
 }
 
 export interface CashAccount extends AssetBase {
@@ -438,6 +445,20 @@ export interface AllocationTarget {
   target: number; // 0–1
 }
 
+/** Qué trae y qué no trae la fuente de datos, para que un módulo vacío se explique solo. */
+export interface DataCoverage {
+  source: string;
+  loadedAt: string;
+  gaps: Array<{ module: string; field: string; detail: string }>;
+  excelTotals?: { totalActivos: number; totalPasivos: number; patrimonioNeto: number };
+  /**
+   * Conciliación línea por línea contra el balance del archivo fuente. Una diferencia no
+   * implica un error de carga: el balance del Excel puede estar desactualizado respecto del
+   * detalle de sus propias pestañas. Se informa el número en vez de esconderlo.
+   */
+  reconciliation?: Array<{ concept: string; excel: number; app: number; difference: number }>;
+}
+
 export interface Database {
   familyOffice: FamilyOffice;
   persons: Person[];
@@ -460,4 +481,6 @@ export interface Database {
   allocationTargets: AllocationTarget[];
   /** Fecha "hoy" del sistema para que los cálculos sean deterministas. */
   asOf: string;
+  /** Presente cuando los datos vienen de una fuente real con campos faltantes. */
+  dataCoverage?: DataCoverage;
 }

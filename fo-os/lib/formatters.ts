@@ -77,3 +77,14 @@ export function formatYears(value: number): string {
 export function formatAxisMM(value: number): string {
   return esNumber(value / MM, 0);
 }
+
+/** Marca de dato ausente en la fuente. Distinta de cero: "no informado" no es "vale cero". */
+export const SIN_DATO = "s/d";
+
+/**
+ * Aplica un formateador solo si el dato existe; si no, devuelve "s/d".
+ * `formatOr(m.capRate, formatPct)` → "6,2%" o "s/d".
+ */
+export function formatOr<T>(value: T | null | undefined, format: (v: T) => string, fallback = SIN_DATO): string {
+  return value === null || value === undefined ? fallback : format(value);
+}

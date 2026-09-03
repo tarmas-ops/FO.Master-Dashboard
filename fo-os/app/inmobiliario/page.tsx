@@ -4,7 +4,7 @@ import { DataTable, type TableColumn } from "@/components/tablas/DataTable";
 import { ThresholdBadge } from "@/components/inversiones/StatusBadge";
 import { db } from "@/data";
 import { ALERT_THRESHOLDS, realEstatePortfolio } from "@/lib/calculos";
-import { formatCLP, formatMultiple, formatNumber, formatPct } from "@/lib/formatters";
+import { formatCLP, formatMultiple, formatNumber, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Inmobiliario · Family Office OS" };
 
@@ -19,6 +19,15 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function InmobiliarioPage() {
   const p = realEstatePortfolio(db);
+
+  // La superficie solo se suma sobre los activos que la registran; si ninguno lo hace,
+  // el subtítulo omite el dato en vez de mostrar 0 m².
+  const surface = p.rows.reduce((a, r) => a + (r.asset.surfaceM2 ?? 0), 0);
+  const subtitle =
+    `¿Cómo están funcionando nuestros activos? ${p.rows.length} activos` +
+    (surface > 0 ? `, ${formatNumber(surface)} m² totales.` : ".");
+  const noiHint =
+    p.coverage.withNOI === p.coverage.total ? undefined : `${p.coverage.withNOI} de ${p.coverage.total} activos con NOI informado`;
 
   const columns: TableColumn[] = [
     { key: "name", header: "Activo" },
@@ -49,7 +58,7 @@ export default function InmobiliarioPage() {
       r.capRate,
       r.ltv,
       r.dscr,
-      r.asset.occupancy,
+      r.asset.occupancy ?? null,
       r.familyShare,
     ],
     cells: [
@@ -59,11 +68,11 @@ export default function InmobiliarioPage() {
       formatCLP(r.value),
       r.debt > 0 ? formatCLP(r.debt) : "—",
       formatCLP(r.equity),
-      r.noi > 0 ? formatCLP(r.noi) : "—",
-      r.capRate > 0 ? formatPct(r.capRate) : "—",
+      formatOr(r.noi, formatCLP, "—"),
+      formatOr(r.capRate, formatPct, "—"),
       r.debt > 0 ? <ThresholdBadge key="ltv" ok={r.ltv <= ALERT_THRESHOLDS.maxLTV}>{formatPct(r.ltv)}</ThresholdBadge> : "—",
       r.dscr === null ? "—" : <ThresholdBadge key="dscr" ok={r.dscr >= ALERT_THRESHOLDS.minDSCR}>{formatMultiple(r.dscr)}</ThresholdBadge>,
-      r.asset.occupancy > 0 ? formatPct(r.asset.occupancy) : "—",
+      formatOr(r.asset.occupancy, formatPct, "—"),
       formatPct(r.familyShare),
     ],
   }));
@@ -73,17 +82,17 @@ export default function InmobiliarioPage() {
       <PageHeader
         eyebrow="Portafolio"
         title="Inmobiliario"
-        subtitle={`¿Cómo están funcionando nuestros activos? ${p.rows.length} activos, ${formatNumber(p.rows.reduce((a, r) => a + r.asset.surfaceM2, 0))} m² totales.`}
+        subtitle={subtitle}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
         <MetricCard label="Valor del Portafolio" value={formatCLP(p.totalValue)} hint="100% de los activos" />
         <MetricCard label="Equity Inmobiliario" value={formatCLP(p.economicEquity)} hint="Atribuible al Family Office" />
         <MetricCard label="Deuda Total" value={formatCLP(p.totalDebt)} />
-        <MetricCard label="NOI Total" value={formatCLP(p.totalNOI)} tooltip="Net Operating Income anual agregado del portafolio." />
-        <MetricCard label="Cap Rate Ponderado" value={formatPct(p.weightedCapRate)} tooltip="NOI total sobre valor de los activos que generan renta." />
+        <MetricCard label="NOI Total" value={formatOr(p.totalNOI, formatCLP)} hint={noiHint} tooltip="Net Operating Income anual agregado del portafolio." />
+        <MetricCard label="Cap Rate Ponderado" value={formatOr(p.weightedCapRate, formatPct)} tooltip="NOI total sobre valor de los activos que generan renta." />
         <MetricCard label="LTV Promedio" value={formatPct(p.weightedLTV)} tooltip="Deuda total sobre valor total. Máximo de política 65%." />
-        <MetricCard label="Ocupación" value={formatPct(p.weightedOccupancy)} hint="Ponderada por valor" />
+        <MetricCard label="Ocupación" value={formatOr(p.weightedOccupancy, formatPct)} hint="Ponderada por valor" />
       </div>
 
       <div className="mt-6">

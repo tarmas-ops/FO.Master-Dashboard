@@ -18,7 +18,7 @@ import {
   realEstateMetrics,
   unleveredAssetIRR,
 } from "@/lib/calculos";
-import { formatCLP, formatCLPFull, formatDate, formatMultiple, formatNumber, formatPct, formatYears } from "@/lib/formatters";
+import { formatCLP, formatCLPFull, formatDate, formatMultiple, formatNumber, formatOr, formatPct, formatYears } from "@/lib/formatters";
 
 export function generateStaticParams() {
   return realEstateAssets(db).map((a) => ({ id: a.id }));
@@ -36,10 +36,27 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
   const valuations = db.valuations.filter((v) => v.assetId === asset.id).sort((a, b) => a.date.localeCompare(b.date));
   const decisions = db.decisions.filter((d) => d.investmentId === asset.id);
   const initialEquity = thesis?.initialEquity ?? asset.acquisitionCost;
-  const distributionsReceived = Math.max(m.noi - m.annualDebtService, 0) * Math.max(new Date(db.asOf).getFullYear() - new Date(asset.acquisitionDate).getFullYear(), 0);
-  const leveredIRR = directAssetIRR(asset.acquisitionDate, initialEquity, m.noi - m.annualDebtService, m.equity, db.asOf);
-  const unleveredIRR = unleveredAssetIRR(asset.acquisitionDate, asset.acquisitionCost, m.noi, asset.currentValue, db.asOf);
-  const moic = initialEquity > 0 ? (m.equity + distributionsReceived) / initialEquity : null;
+  // Los retornos requieren flujo (NOI) y una fecha de origen. Sin ellos no se estiman:
+  // el bloque muestra "s/d" en vez de una IRR construida sobre supuestos inventados.
+  const heldYears =
+    asset.acquisitionDate === undefined ? null : Math.max(new Date(db.asOf).getFullYear() - new Date(asset.acquisitionDate).getFullYear(), 0);
+  const netCashFlow = m.noi === null ? null : Math.max(m.noi - m.annualDebtService, 0);
+  const distributionsReceived = netCashFlow === null || heldYears === null ? null : netCashFlow * heldYears;
+  const leveredIRR =
+    asset.acquisitionDate === undefined || initialEquity === undefined || m.noi === null
+      ? null
+      : directAssetIRR(asset.acquisitionDate, initialEquity, m.noi - m.annualDebtService, m.equity, db.asOf);
+  const unleveredIRR =
+    asset.acquisitionDate === undefined || asset.acquisitionCost === undefined || m.noi === null
+      ? null
+      : unleveredAssetIRR(asset.acquisitionDate, asset.acquisitionCost, m.noi, asset.currentValue, db.asOf);
+  const moic =
+    initialEquity !== undefined && initialEquity > 0 ? (m.equity + (distributionsReceived ?? 0)) / initialEquity : null;
+  const subtitleParts = [
+    asset.location,
+    asset.surfaceM2 !== undefined ? `${formatNumber(asset.surfaceM2)} m²` : null,
+    `Participación económica ${formatPct(m.familyShare)}`,
+  ].filter((x): x is string => x !== null);
 
   return (
     <>
@@ -47,7 +64,7 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
         crumbs={[{ label: "Portafolio" }, { label: "Inmobiliario", href: "/inmobiliario" }, { label: asset.name }]}
         eyebrow={asset.subAssetClass}
         title={asset.name}
-        subtitle={`${asset.location} · ${formatNumber(asset.surfaceM2)} m² · Participación económica ${formatPct(m.familyShare)}`}
+        subtitle={subtitleParts.join(" · ")}
         actions={
           <div className="flex items-center gap-2">
             <Badge variant="outline">{asset.currency}</Badge>
@@ -60,12 +77,17 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Valor Actual" value={formatCLP(asset.currentValue)} hint={`Tasación ${formatDate(asset.lastValuationDate)}`} />
         <MetricCard label="Equity Actual" value={formatCLP(m.equity)} hint={`Atribuible ${formatCLP(m.attributableEquity)}`} />
-        <MetricCard label="NOI Anual" value={formatCLP(m.noi)} hint={`Cap rate ${formatPct(m.capRate)}`} tooltip="Net Operating Income: ingresos menos gastos operacionales." />
+        <MetricCard
+          label="NOI Anual"
+          value={formatOr(m.noi, (v) => formatCLP(v))}
+          hint={m.capRate === null ? "No informado en la fuente" : `Cap rate ${formatPct(m.capRate)}`}
+          tooltip="Net Operating Income: ingresos menos gastos operacionales."
+        />
         <MetricCard
           label="Ganancia No Realizada"
-          value={formatCLP(m.unrealizedGain, { sign: true })}
-          delta={asset.acquisitionCost > 0 ? asset.currentValue / asset.acquisitionCost - 1 : null}
-          hint="vs. costo de adquisición"
+          value={formatOr(m.unrealizedGain, (v) => formatCLP(v, { sign: true }))}
+          delta={asset.acquisitionCost !== undefined && asset.acquisitionCost > 0 ? asset.currentValue / asset.acquisitionCost - 1 : null}
+          hint={asset.acquisitionCost === undefined ? "Sin costo de adquisición registrado" : "vs. costo de adquisición"}
         />
       </div>
 
@@ -76,10 +98,10 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
           </CardHeader>
           <CardContent>
             <StatRow label="Valor Actual" value={formatCLP(asset.currentValue)} />
-            <StatRow label="Costo de Adquisición" value={formatCLP(asset.acquisitionCost)} />
+            <StatRow label="Costo de Adquisición" value={formatOr(asset.acquisitionCost, (v) => formatCLP(v))} />
             <StatRow label="Deuda" value={m.debt > 0 ? formatCLP(m.debt) : "—"} />
             <StatRow label="Equity Actual" value={formatCLP(m.equity)} strong />
-            <StatRow label="Ganancia No Realizada" value={formatCLP(m.unrealizedGain, { sign: true })} />
+            <StatRow label="Ganancia No Realizada" value={formatOr(m.unrealizedGain, (v) => formatCLP(v, { sign: true }))} />
             <StatRow label="Método de Valorización" value={asset.valuationMethod} muted />
           </CardContent>
         </Card>
@@ -89,12 +111,18 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
             <CardTitle>Operación</CardTitle>
           </CardHeader>
           <CardContent>
-            <StatRow label="Ingresos Anuales" value={formatCLP(asset.grossRent)} />
-            <StatRow label="NOI" value={formatCLP(m.noi)} />
-            <StatRow label="Ocupación" value={asset.occupancy > 0 ? formatPct(asset.occupancy) : "—"} />
-            <StatRow label="WALE" value={asset.wale > 0 ? formatYears(asset.wale) : "—"} />
-            <StatRow label="Renta por m² (mensual)" value={m.rentPerM2 > 0 ? formatCLPFull(Math.round(m.rentPerM2)) : "—"} />
-            <StatRow label="Cap Rate" value={m.capRate > 0 ? formatPct(m.capRate) : "—"} strong />
+            <StatRow label="Ingresos Anuales" value={formatOr(asset.grossRent, (v) => formatCLP(v))} />
+            <StatRow label="NOI" value={formatOr(m.noi, (v) => formatCLP(v))} />
+            <StatRow label="Ocupación" value={formatOr(asset.occupancy, formatPct)} />
+            <StatRow label="WALE" value={formatOr(asset.wale, formatYears)} />
+            <StatRow label="Renta por m² (mensual)" value={formatOr(m.rentPerM2, (v) => formatCLPFull(Math.round(v)))} />
+            <StatRow label="Cap Rate" value={formatOr(m.capRate, formatPct)} strong />
+            {m.noi === null ? (
+              <p className="mt-3 text-[12px] leading-relaxed text-muted">
+                La fuente registra la valorización del inmueble, no su operación. Al cargar arriendos, gastos y contratos, este bloque se
+                completa solo.
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -103,13 +131,13 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
             <CardTitle>Retornos</CardTitle>
           </CardHeader>
           <CardContent>
-            <StatRow label="Equity Inicial" value={formatCLP(initialEquity)} />
+            <StatRow label="Equity Inicial" value={formatOr(initialEquity, (v) => formatCLP(v))} />
             <StatRow label="Equity Actual" value={formatCLP(m.equity)} />
-            <StatRow label="Flujo Acumulado Recibido" value={formatCLP(distributionsReceived)} />
-            <StatRow label="MOIC" value={moic === null ? "—" : formatMultiple(moic)} />
-            <StatRow label="IRR Apalancada" value={leveredIRR === null ? "—" : formatPct(leveredIRR)} strong />
-            <StatRow label="IRR Sin Apalancamiento" value={unleveredIRR === null ? "—" : formatPct(unleveredIRR)} />
-            <StatRow label="Cash-on-Cash" value={formatPct(m.cashOnCash)} />
+            <StatRow label="Flujo Acumulado Recibido" value={formatOr(distributionsReceived, (v) => formatCLP(v))} />
+            <StatRow label="MOIC" value={formatOr(moic, (v) => formatMultiple(v))} />
+            <StatRow label="IRR Apalancada" value={formatOr(leveredIRR, formatPct)} strong />
+            <StatRow label="IRR Sin Apalancamiento" value={formatOr(unleveredIRR, formatPct)} />
+            <StatRow label="Cash-on-Cash" value={formatOr(m.cashOnCash, formatPct)} />
           </CardContent>
         </Card>
       </div>
@@ -162,7 +190,13 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
             <CardTitle>Histórico de Valorización</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart data={valuations.map((v) => ({ label: v.date.slice(0, 4), value: v.value }))} valueLabel="Valorización" />
+            {valuations.length > 0 ? (
+              <SimpleBarChart data={valuations.map((v) => ({ label: v.date.slice(0, 4), value: v.value }))} valueLabel="Valorización" />
+            ) : (
+              <p className="py-14 text-center text-[13px] leading-relaxed text-muted">
+                La fuente trae una sola valorización, sin tasaciones anteriores. Al cargar el histórico, este gráfico se completa solo.
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -170,10 +204,12 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
             <CardTitle>Histórico de NOI</CardTitle>
           </CardHeader>
           <CardContent>
-            {asset.noi > 0 ? (
+            {(asset.noi ?? 0) > 0 && valuations.length > 0 ? (
               <SimpleBarChart data={valuations.map((v) => ({ label: v.date.slice(0, 4), value: v.noi ?? 0 }))} valueLabel="NOI" />
             ) : (
-              <p className="py-14 text-center text-[13px] text-muted">Este activo no genera NOI (terreno sin explotación).</p>
+              <p className="py-14 text-center text-[13px] text-muted">
+                {asset.noi === undefined ? "Sin NOI informado en la fuente." : "Este activo no genera NOI (terreno sin explotación)."}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -223,7 +259,7 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
           <Card>
             <CardHeader>
               <CardTitle>Arrendatarios</CardTitle>
-              <span className="text-[12px] text-muted">WALE {formatYears(asset.wale)}</span>
+              <span className="text-[12px] text-muted">WALE {formatOr(asset.wale, formatYears)}</span>
             </CardHeader>
             <CardContent className="pt-0">
               <Table>
@@ -246,7 +282,9 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
                       <TableCell className="text-right">{formatNumber(t.surfaceM2)} m²</TableCell>
                       <TableCell className="text-right">{formatCLP(t.monthlyRent)}</TableCell>
                       <TableCell className="text-right">{formatCLP(t.monthlyRent * 12)}</TableCell>
-                      <TableCell className="text-right">{asset.grossRent > 0 ? formatPct((t.monthlyRent * 12) / asset.grossRent) : "—"}</TableCell>
+                      <TableCell className="text-right">
+                        {asset.grossRent !== undefined && asset.grossRent > 0 ? formatPct((t.monthlyRent * 12) / asset.grossRent) : "—"}
+                      </TableCell>
                       <TableCell className="text-muted">{formatDate(t.leaseEnd)}</TableCell>
                     </TableRow>
                   ))}
