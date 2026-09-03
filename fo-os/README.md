@@ -13,6 +13,8 @@ npm run lint
 npm run build
 ```
 
+`APP_PASSWORD=... npm run dev` activa el portón de contraseña también en local.
+
 ## Principio de arquitectura
 
 La aplicación no es una colección de dashboards. Se construye sobre una sola cadena:
@@ -126,6 +128,37 @@ líquidas, caja, 5 créditos y 4 sociedades. Aproximadamente **$18.500 MM** en a
 **$3.500 MM** de deuda y **$15.000 MM** de patrimonio neto. Dos activos están deliberadamente
 en problemas (Costa Lodge con DSCR 1,05x y vencimiento puente en 2027; Centro Comercial Sur
 con LTV sobre política), y sus tesis y decisiones registradas lo reflejan.
+
+## Publicar
+
+Streamlit Community Cloud **no** puede alojar esta aplicación: solo corre apps Python de
+Streamlit, y esto es Next.js sobre Node. La app Streamlit del directorio raíz del repo es otra
+cosa y sigue publicándose por su cuenta.
+
+Para Vercel (gratis, sin configuración de build):
+
+1. vercel.com → **Add New → Project** → importar `FO.Master-Dashboard`.
+2. **Root Directory: `fo-os`.** Es el paso que suele olvidarse; sin él Vercel intenta construir
+   la app Streamlit de la raíz. El resto (framework, comandos, salida) lo detecta solo.
+3. En **Environment Variables**, agregar `APP_PASSWORD` con la contraseña compartida, marcada
+   para Production, Preview y Development.
+4. Deploy.
+
+### Portón de contraseña
+
+`proxy.ts` exige la contraseña antes de renderizar cualquier página, así que ninguna cifra del
+portafolio sale del servidor sin una cookie válida — no es un gate de CSS que se salte mirando
+el HTML. El token de sesión se deriva de la propia contraseña (`lib/auth.ts`), de modo que no
+hace falta un segundo secreto y **cambiar `APP_PASSWORD` cierra todas las sesiones abiertas**.
+La cookie es `HttpOnly`, `SameSite=Lax`, `Secure` en producción, y dura 12 horas.
+
+Sin `APP_PASSWORD` configurada el portón queda desactivado y la aplicación es accesible sin
+credenciales: cómodo en local, inaceptable en un despliegue público. La pantalla de acceso lo
+dice explícitamente cuando ocurre.
+
+Es una contraseña compartida, no un sistema de identidades: no distingue quién entra ni deja
+registro por persona. Para eso hace falta un proveedor de identidad, que la arquitectura admite
+pero esta versión no implementa.
 
 ## Migrar a PostgreSQL
 

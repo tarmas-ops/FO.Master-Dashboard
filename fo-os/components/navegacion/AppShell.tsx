@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommandBar } from "./CommandBar";
 import { MobileNav } from "./MobileNav";
@@ -7,16 +10,23 @@ export function AppShell({
   familyOfficeName,
   asOf,
   dataLabel,
+  showLogout,
   children,
 }: {
   familyOfficeName: string;
   asOf: string;
   dataLabel: string;
+  showLogout: boolean;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  // La pantalla de acceso se muestra sin barra lateral ni buscador: quien aún no entra no
+  // tiene por qué ver la estructura del portafolio.
+  if (pathname === "/login") return <>{children}</>;
+
   return (
     <TooltipProvider delayDuration={150}>
-      <Sidebar familyOfficeName={familyOfficeName} dataLabel={dataLabel} />
+      <Sidebar familyOfficeName={familyOfficeName} dataLabel={dataLabel} showLogout={showLogout} />
       <div className="lg:pl-60">
         <div className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur lg:px-8">
           <MobileNav />
