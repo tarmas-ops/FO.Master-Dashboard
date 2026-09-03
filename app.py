@@ -7,12 +7,14 @@ from src.kpi_engine import build_kpi_cards
 from src.pending_data import scan_pending_data
 from src.theme import (
     ASSET_CLASS_COLORS,
+    fmt_clp,
+    fmt_pct,
     inject_base_css,
+    insight_html,
     metric_card,
     nav_bar,
     plotly_layout,
     status_badge_html,
-    fmt_clp,
 )
 
 st.set_page_config(page_title="Family Office — Panel Consolidado", layout="wide")
@@ -65,6 +67,15 @@ with left:
     fig = plotly_layout(fig, height=380)
     fig.update_layout(showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
+    top2 = dist.nlargest(2, "Monto (CLP)")
+    top2_pct = top2["% del Total"].sum()
+    st.markdown(
+        insight_html(
+            f"{top2.iloc[0]['Clase de Activo']} y {top2.iloc[1]['Clase de Activo']} concentran "
+            f"{fmt_pct(top2_pct)} del patrimonio — poco diversificado fuera de esas dos clases."
+        ),
+        unsafe_allow_html=True,
+    )
     st.page_link("pages/1_Balance.py", label="Ver detalle del Balance y drill-down por clase →")
 
 with right:

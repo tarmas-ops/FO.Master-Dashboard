@@ -1,6 +1,7 @@
-"""Shared visual language: a sober family-office palette (navy / grays, semaphore
-accents only for risk), one Plotly template, and small render helpers reused by every
-page so the app reads as one tool, not a stack of separate scripts."""
+"""Shared visual language: dark-mode-premium palette (near-black background,
+elevated cards, saturated blue/green/orange accents with a soft glow), one Plotly
+dark template, and small render helpers reused by every page so the app reads as
+one tool, not a stack of separate scripts."""
 
 from __future__ import annotations
 
@@ -10,21 +11,23 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-NAVY = "#0F2340"
-NAVY_SOFT = "#1C3A5E"
-SLATE = "#3E4C5E"
-SLATE_LIGHT = "#6B7A8F"
-BORDER = "#DCE2E8"
-BG = "#F6F8FA"
-CARD_BG = "#FFFFFF"
-INK = "#141B26"
+NAVY = "#5B8DEF"       # primary accent (blue)
+NAVY_SOFT = "#3D6FD1"
+SLATE = "#B4B4C9"      # secondary text on dark background
+SLATE_LIGHT = "#7A7A94"  # muted/tertiary text
+BORDER = "rgba(255,255,255,0.08)"
+BG = "#0A0A0F"
+CARD_BG = "#1A1A24"
+CARD_BG_HOVER = "#20202D"
+INK = "#F4F4F8"        # primary text
 
-GREEN = "#1E7A4C"
-GREEN_BG = "#E7F4ED"
-AMBER = "#B7791F"
-AMBER_BG = "#FBF2E1"
-RED = "#B3261E"
-RED_BG = "#FBE9E7"
+GREEN = "#22C55E"
+GREEN_BG = "rgba(34,197,94,0.14)"
+AMBER = "#F59E0B"
+AMBER_BG = "rgba(245,158,11,0.14)"
+RED = "#EF4444"
+RED_BG = "rgba(239,68,68,0.14)"
+ORANGE = "#F97316"
 
 STATUS_COLORS = {
     "verde": (GREEN, GREEN_BG),
@@ -33,19 +36,22 @@ STATUS_COLORS = {
 }
 
 ASSET_CLASS_COLORS = {
-    "Liquidez": "#8FA4BD",
-    "Inversiones Financieras": "#4C6E91",
+    "Liquidez": "#A78BFA",
+    "Inversiones Financieras": ORANGE,
     "Bienes Raíces": NAVY,
-    "Empresas (Equity)": "#2E5077",
-    "Otros Activos (CxC + menores)": "#B7C3D0",
+    "Empresas (Equity)": GREEN,
+    "Otros Activos (CxC + menores)": "#4B4B5E",
 }
 
-FONT_FAMILY = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
 
 
 def inject_base_css() -> None:
     st.markdown(
         f"""
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
         html, body, [class*="css"] {{
             font-family: {FONT_FAMILY};
@@ -54,27 +60,41 @@ def inject_base_css() -> None:
             background-color: {BG};
         }}
         [data-testid="stSidebar"] {{
-            background-color: {NAVY};
+            background-color: {BG};
+            border-right: 1px solid {BORDER};
         }}
         [data-testid="stSidebar"] * {{
-            color: #E7ECF2 !important;
+            color: {SLATE} !important;
         }}
         [data-testid="stSidebar"] a {{
-            color: #C9D6E5 !important;
+            color: {SLATE} !important;
         }}
         h1, h2, h3 {{
             color: {INK};
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }}
+        @keyframes fo-fade-up {{
+            from {{ opacity: 0; transform: translateY(8px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
         }}
         .fo-card {{
             background: {CARD_BG};
             border: 1px solid {BORDER};
-            border-radius: 10px;
-            padding: 18px 20px;
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            animation: fo-fade-up 0.35s ease-out;
+        }}
+        .fo-card:hover {{
+            transform: translateY(-2px);
+            border-color: rgba(91,141,239,0.35);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(91,141,239,0.12);
         }}
         .fo-badge {{
             display: inline-block;
-            padding: 2px 10px;
+            padding: 3px 11px;
             border-radius: 999px;
             font-size: 0.78rem;
             font-weight: 600;
@@ -84,10 +104,18 @@ def inject_base_css() -> None:
             color: {SLATE_LIGHT};
             font-size: 0.85rem;
         }}
+        .fo-insight {{
+            color: {SLATE};
+            font-size: 0.85rem;
+            margin-top: 6px;
+            padding-left: 10px;
+            border-left: 2px solid {NAVY};
+        }}
         .fo-metric-value {{
-            font-size: 1.6rem;
+            font-size: 1.7rem;
             font-weight: 700;
             color: {INK};
+            letter-spacing: -0.01em;
         }}
         .fo-navlink {{
             display: block;
@@ -95,7 +123,7 @@ def inject_base_css() -> None:
             border-radius: 999px;
             background: {CARD_BG};
             border: 1px solid {BORDER};
-            color: {NAVY} !important;
+            color: {SLATE} !important;
             text-decoration: none !important;
             font-size: 0.83rem;
             font-weight: 600;
@@ -106,7 +134,8 @@ def inject_base_css() -> None:
         .fo-navlink.active {{
             background: {NAVY};
             border-color: {NAVY};
-            color: #FFFFFF !important;
+            color: #0A0A0F !important;
+            box-shadow: 0 0 16px rgba(91,141,239,0.5);
         }}
         [data-testid="stPageLink"] {{
             min-height: 0 !important;
@@ -119,13 +148,18 @@ def inject_base_css() -> None:
             font-size: 0.83rem !important;
             font-weight: 600 !important;
             justify-content: center !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }}
+        [data-testid="stPageLink"] a:hover {{
+            border-color: rgba(91,141,239,0.5) !important;
+            box-shadow: 0 0 12px rgba(91,141,239,0.25);
         }}
         .fo-metric-label {{
-            color: {SLATE};
-            font-size: 0.85rem;
-            font-weight: 500;
+            color: {SLATE_LIGHT};
+            font-size: 0.82rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
         }}
         </style>
         """,
@@ -176,9 +210,14 @@ def nav_bar(current: str) -> None:
 
 
 def status_badge_html(status: str, text: str | None = None) -> str:
-    color, bg = STATUS_COLORS.get(status, (SLATE, "#EEE"))
+    color, bg = STATUS_COLORS.get(status, (SLATE, "#2A2A38"))
     label = text or status.upper()
     return f'<span class="fo-badge" style="color:{color};background:{bg};">{label}</span>'
+
+
+def insight_html(text: str) -> str:
+    """A one-line takeaway rendered under a chart, in the accent-bordered style."""
+    return f'<div class="fo-insight">{text}</div>'
 
 
 def plotly_layout(fig: go.Figure, height: int | None = None) -> go.Figure:
@@ -187,13 +226,14 @@ def plotly_layout(fig: go.Figure, height: int | None = None) -> go.Figure:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=10, r=10, t=40, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
-        colorway=[NAVY, "#4C6E91", "#8FA4BD", "#2E5077", "#B7C3D0", SLATE_LIGHT],
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5, font=dict(color=SLATE)),
+        colorway=[NAVY, GREEN, ORANGE, "#A78BFA", "#4B4B5E", SLATE_LIGHT],
+        hoverlabel=dict(bgcolor=CARD_BG, bordercolor=BORDER, font=dict(color=INK, family=FONT_FAMILY)),
     )
     if height:
         fig.update_layout(height=height)
-    fig.update_xaxes(gridcolor=BORDER, zerolinecolor=BORDER)
-    fig.update_yaxes(gridcolor=BORDER, zerolinecolor=BORDER)
+    fig.update_xaxes(gridcolor=BORDER, zerolinecolor=BORDER, color=SLATE)
+    fig.update_yaxes(gridcolor=BORDER, zerolinecolor=BORDER, color=SLATE)
     return fig
 
 

@@ -35,7 +35,7 @@ fig2 = go.Figure()
 fig2.add_scatter(
     x=meses, y=fc.saldo_acumulado, name="Saldo Acumulado (reconstruido)",
     mode="lines", line=dict(color=NAVY, width=2), fill="tozeroy",
-    fillcolor="rgba(15,35,64,0.08)",
+    fillcolor="rgba(91,141,239,0.12)",
 )
 if neg_months:
     neg_vals = [v for v in fc.saldo_acumulado if v is not None and v < 0]
