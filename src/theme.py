@@ -137,11 +137,14 @@ _NAV_ITEMS = [
     ("Inicio", "app.py"),
     ("Balance", "pages/1_Balance.py"),
     ("KPIs", "pages/2_KPIs.py"),
+    ("Riesgo", "pages/10_Riesgo.py"),
     ("Flujo Caja", "pages/3_Flujo_Caja.py"),
+    ("Indicadores Macro", "pages/8_Indicadores_Macro.py"),
     ("Datos Pendientes", "pages/4_Datos_Pendientes.py"),
     ("Empresas", "pages/5_Empresas.py"),
     ("Simulador", "pages/6_Simulador.py"),
     ("Historial", "pages/7_Historial.py"),
+    ("Gobernanza", "pages/9_Gobernanza.py"),
 ]
 
 
@@ -157,10 +160,11 @@ def nav_bar(current: str) -> None:
     require_password() — while st.page_link navigates client-side and keeps the
     session, and thus the login, intact.
     """
-    # Two explicit rows of 4 columns (rather than one 8-wide row indexed by i % 4) so
-    # that when columns stack to full-width on a narrow screen, items still stack in
-    # left-to-right reading order instead of being interleaved by column.
-    rows = [_NAV_ITEMS[0:4], _NAV_ITEMS[4:8]]
+    # Explicit rows of (up to) 4 columns each — built by slicing, not by indexing a
+    # single wide row with i % 4 — so that when columns stack to full-width on a
+    # narrow screen, items still stack in left-to-right reading order instead of
+    # being interleaved by column.
+    rows = [_NAV_ITEMS[i:i + 4] for i in range(0, len(_NAV_ITEMS), 4)]
     for row in rows:
         cols = st.columns(4)
         for col, (label, path) in zip(cols, row):
