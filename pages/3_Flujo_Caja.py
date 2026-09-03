@@ -4,7 +4,7 @@ import streamlit as st
 
 from src.app_data import get_data
 from src.auth import require_password
-from src.theme import GREEN, NAVY, RED, SLATE_LIGHT, fmt_clp, format_display_df, inject_base_css, plotly_layout
+from src.theme import fmt_clp, format_display_df, GREEN, inject_base_css, nav_bar, NAVY, plotly_layout, RED, SLATE_LIGHT
 
 st.set_page_config(page_title="Flujo de Caja — Family Office", layout="wide")
 require_password()
@@ -13,6 +13,7 @@ data = get_data()
 fc = data.flujo_caja
 
 st.markdown("## Explorador de Flujo de Caja")
+nav_bar("Flujo Caja")
 st.markdown(
     '<span class="fo-muted">60 meses (ago-2026 a jul-2031). El Saldo Acumulado mensual fue reconstruido por el '
     "dashboard — la fila del Excel original venía vacía; ver nota más abajo y el panel de Datos Pendientes.</span>",

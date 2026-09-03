@@ -9,7 +9,7 @@ from src.simulator import (
     run_scenario,
     solve_leverage_for_target,
 )
-from src.theme import GREEN, NAVY, fmt_clp, fmt_pct, inject_base_css, metric_card, plotly_layout
+from src.theme import fmt_clp, fmt_pct, GREEN, inject_base_css, metric_card, nav_bar, NAVY, plotly_layout
 
 st.set_page_config(page_title="Simulador — Family Office", layout="wide")
 require_password()
@@ -17,6 +17,7 @@ inject_base_css()
 data = get_data()
 
 st.markdown("## Simulador de Escenarios")
+nav_bar("Simulador")
 st.markdown(
     '<span class="fo-muted">Modela apalancar Bienes Raíces para reinvertir el capital a una tasa distinta, y compara '
     "contra el crecimiento orgánico del portafolio. Recalcula en vivo al mover los controles.</span>",

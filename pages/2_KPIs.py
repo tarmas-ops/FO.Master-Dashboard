@@ -3,7 +3,7 @@ import streamlit as st
 from src.app_data import get_data
 from src.auth import require_password
 from src.kpi_engine import cards_by_section
-from src.theme import fmt_clp, inject_base_css, status_badge_html
+from src.theme import fmt_clp, inject_base_css, nav_bar, status_badge_html
 
 st.set_page_config(page_title="KPIs — Family Office", layout="wide")
 require_password()
@@ -11,6 +11,7 @@ inject_base_css()
 data = get_data()
 
 st.markdown("## Panel de KPIs")
+nav_bar("KPIs")
 st.markdown(
     '<span class="fo-muted">Horizontes 1/5/10 años · combina el Balance (foto actual) con la proyección de Flujo de Caja y los supuestos de retorno.</span>',
     unsafe_allow_html=True,

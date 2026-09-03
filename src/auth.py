@@ -15,7 +15,12 @@ def require_password() -> None:
     if st.session_state.get("fo_authenticated"):
         return
 
-    expected = st.secrets.get("dashboard_password")
+    try:
+        expected = st.secrets.get("dashboard_password")
+    except Exception:
+        # No secrets.toml at all in this environment (e.g. local dev) — st.secrets
+        # raises instead of behaving like an empty mapping in that case.
+        expected = None
     if not expected:
         # No password configured (e.g. local dev without secrets.toml) — don't lock
         # out local usage, but make it obvious this must be set before any shared

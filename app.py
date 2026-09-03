@@ -9,6 +9,7 @@ from src.theme import (
     ASSET_CLASS_COLORS,
     inject_base_css,
     metric_card,
+    nav_bar,
     plotly_layout,
     status_badge_html,
     fmt_clp,
@@ -21,6 +22,7 @@ inject_base_css()
 data = get_data()
 
 st.markdown("## Family Office — Panel Consolidado")
+nav_bar("Inicio")
 st.markdown(
     f'<span class="fo-muted">Perímetro: núcleo familiar + hijos · '
     f"Datos recalculados desde <code>FO_Master_Consolidado.xlsx</code> el {data.fecha_carga}</span>",

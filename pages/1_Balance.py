@@ -3,7 +3,7 @@ import streamlit as st
 
 from src.app_data import get_data
 from src.auth import require_password
-from src.theme import ASSET_CLASS_COLORS, esc_dollar, fmt_clp, format_display_df, inject_base_css, metric_card, plotly_layout
+from src.theme import ASSET_CLASS_COLORS, esc_dollar, fmt_clp, format_display_df, inject_base_css, metric_card, nav_bar, plotly_layout
 
 st.set_page_config(page_title="Balance — Family Office", layout="wide")
 require_password()
@@ -11,6 +11,7 @@ inject_base_css()
 data = get_data()
 
 st.markdown("## Balance en Vivo")
+nav_bar("Balance")
 st.markdown(
     '<span class="fo-muted">Activos, pasivos y patrimonio neto consolidados — click en una clase de activo para ver el detalle.</span>',
     unsafe_allow_html=True,

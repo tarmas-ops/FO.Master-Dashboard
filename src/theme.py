@@ -89,6 +89,37 @@ def inject_base_css() -> None:
             font-weight: 700;
             color: {INK};
         }}
+        .fo-navlink {{
+            display: block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: {CARD_BG};
+            border: 1px solid {BORDER};
+            color: {NAVY} !important;
+            text-decoration: none !important;
+            font-size: 0.83rem;
+            font-weight: 600;
+            white-space: nowrap;
+            text-align: center;
+            margin-bottom: 6px;
+        }}
+        .fo-navlink.active {{
+            background: {NAVY};
+            border-color: {NAVY};
+            color: #FFFFFF !important;
+        }}
+        [data-testid="stPageLink"] {{
+            min-height: 0 !important;
+        }}
+        [data-testid="stPageLink"] a {{
+            padding: 7px 14px !important;
+            border-radius: 999px !important;
+            background: {CARD_BG} !important;
+            border: 1px solid {BORDER} !important;
+            font-size: 0.83rem !important;
+            font-weight: 600 !important;
+            justify-content: center !important;
+        }}
         .fo-metric-label {{
             color: {SLATE};
             font-size: 0.85rem;
@@ -100,6 +131,44 @@ def inject_base_css() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+_NAV_ITEMS = [
+    ("Inicio", "app.py"),
+    ("Balance", "pages/1_Balance.py"),
+    ("KPIs", "pages/2_KPIs.py"),
+    ("Flujo Caja", "pages/3_Flujo_Caja.py"),
+    ("Datos Pendientes", "pages/4_Datos_Pendientes.py"),
+    ("Empresas", "pages/5_Empresas.py"),
+    ("Simulador", "pages/6_Simulador.py"),
+    ("Historial", "pages/7_Historial.py"),
+]
+
+
+def nav_bar(current: str) -> None:
+    """Row of links to every page, visible above the fold on every page.
+
+    Streamlit's own page navigation lives in the sidebar, which starts collapsed on
+    mobile behind a small arrow — easy to miss entirely, which is what made the app
+    read as a static report on a phone instead of something with more to tap into.
+    This bar is a second, always-visible way to move between pages. It uses
+    st.page_link (not raw <a> tags) specifically because raw links force a full
+    browser reload and drop st.session_state — including the login flag from
+    require_password() — while st.page_link navigates client-side and keeps the
+    session, and thus the login, intact.
+    """
+    # Two explicit rows of 4 columns (rather than one 8-wide row indexed by i % 4) so
+    # that when columns stack to full-width on a narrow screen, items still stack in
+    # left-to-right reading order instead of being interleaved by column.
+    rows = [_NAV_ITEMS[0:4], _NAV_ITEMS[4:8]]
+    for row in rows:
+        cols = st.columns(4)
+        for col, (label, path) in zip(cols, row):
+            with col:
+                if label == current:
+                    st.markdown(f'<div class="fo-navlink active">{label}</div>', unsafe_allow_html=True)
+                else:
+                    st.page_link(path, label=label)
 
 
 def status_badge_html(status: str, text: str | None = None) -> str:

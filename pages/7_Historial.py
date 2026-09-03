@@ -5,7 +5,7 @@ from src.app_data import get_data
 from src.auth import require_password
 from src.pdf_export import build_executive_summary_pdf
 from src.snapshots import load_snapshots
-from src.theme import GREEN, NAVY, fmt_clp, format_display_df, inject_base_css, plotly_layout
+from src.theme import fmt_clp, format_display_df, GREEN, inject_base_css, nav_bar, NAVY, plotly_layout
 
 st.set_page_config(page_title="Historial — Family Office", layout="wide")
 require_password()
@@ -13,6 +13,7 @@ inject_base_css()
 data = get_data()
 
 st.markdown("## Historial de Patrimonio Neto")
+nav_bar("Historial")
 st.markdown(
     '<span class="fo-muted">Cada vez que se recalcula una nueva versión de FO_Master_Consolidado.xlsx, el dashboard '
     "guarda un snapshot con fecha. Con el tiempo esto arma una serie histórica real del patrimonio, algo que el "
