@@ -185,6 +185,46 @@ Es una contraseña compartida, no un sistema de identidades: no distingue quién
 registro por persona. Para eso hace falta un proveedor de identidad, que la arquitectura admite
 pero esta versión no implementa.
 
+## Datos en vivo desde Google Sheets
+
+La planilla de Google Sheets puede ser la fuente de los datos: se edita ahí y el dashboard se
+actualiza solo. Guía de instalación para el usuario: `integrations/google-sheets/LEEME.md`.
+
+```
+Google Sheets ──(Apps Script)──▶ build en Vercel ──▶ dashboard
+                 token secreto     sync → valida → publica
+```
+
+- **`integrations/google-sheets/Code.gs`** (Apps Script ligado a la planilla): entrega las pestañas
+  solo a quien trae el token, y cada 5 minutos revisa si hubo cambios para pedir a Vercel un nuevo
+  build mediante un Deploy Hook. Espera a que la planilla quede quieta, separa las publicaciones
+  15 minutos y las topa en 20 al día.
+- **`scripts/sync-sheets.ts`** corre como `prebuild`: descarga, transforma (`lib/sheets/`), valida y
+  recién entonces escribe `data/real/dataset.json`. **Si algo no valida, sale con error: el build
+  falla y Vercel deja en línea la versión anterior.** Sin `SHEETS_ENDPOINT` y `SHEETS_TOKEN` no hace
+  nada y se usa el dataset incluido.
+- **`lib/sheets/source.ts`** ubica cada tabla por su encabezado y la lee hasta su marcador de cierre,
+  en vez de usar filas fijas como el lector original: una propiedad agregada en cualquier fila se
+  lee, y lo que queda fuera (datos bajo la fila TOTAL) se avisa en vez de perderse en silencio.
+- **`lib/sheets/validate.ts`** rechaza celdas con error de fórmula, conciliación rota y cambios
+  desproporcionados (>40%) respecto de la última versión publicada, salvo `SHEETS_ALLOW_BIG_CHANGE=1`.
+
+Variables de entorno: `SHEETS_ENDPOINT`, `SHEETS_TOKEN`, y opcional `SHEETS_ALLOW_BIG_CHANGE`.
+
+### Pruebas
+
+```bash
+python3 scripts/export_sheet_fixture.py   # simula la respuesta de Google Sheets (no se versiona)
+python3 scripts/export_real_dataset.py    # referencia: lector original en Python
+npm run check-parity       # el lector TypeScript reproduce exactamente el de Python
+npm run check-sheets       # ediciones normales de la planilla no pierden datos
+npm run check-sync         # sincronizador de punta a punta, con planillas buenas y malas
+npm run check-appsscript   # lógica de publicación del Apps Script con servicios simulados
+```
+
+El lector de Python (`src/data_loader.py`) sigue alimentando la app Streamlit y es la referencia de
+la prueba de paridad; el lector de TypeScript es el que usa el dashboard en línea.
+
 ## Migrar a PostgreSQL
 
 `prisma/schema.prisma` refleja el mismo modelo, con ownership recursivo y soporte para

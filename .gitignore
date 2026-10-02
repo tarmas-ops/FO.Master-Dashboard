@@ -7,3 +7,6 @@ data/snapshots.csv
 .streamlit/secrets.toml
 *.log
 .DS_Store
+
+# Simulación de la respuesta de Google Sheets: contiene el patrimonio real
+fo-os/.sheets-fixture/

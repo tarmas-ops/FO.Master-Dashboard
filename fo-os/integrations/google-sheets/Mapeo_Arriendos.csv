@@ -1,0 +1,11 @@
+Concepto,Propiedades,Estado,Nota
+JJ 3 PRIETO,JJ Prieto 4260,PROPUESTO,"3 unidades en JJ Prieto 4260 (208, 308, 408)."
+PAGOS MEME ARRIENDO A BANCO ITAU,Local Av. La dehesa,PROPUESTO,"El local pertenece a Inversiones Meme Ltda, que da nombre al concepto."
+OFICINA LAS CONDES ESTORIL,Las Condes 10465,PROPUESTO,Única oficina en Las Condes del listado; la calle Estoril no figura en la dirección.
+BODEGAS Y ESTACIONAMIENTOS,"Mario Kreutzberger 1520, Bod",PROPUESTO,"'MK 3B' sugiere 3 bodegas en Mario Kreutzberger; el concepto también menciona JJP, que no se pudo separar."
+ARRIENDOS MK 9,"Mario Kreutzberger 1520, Unidad",PROPUESTO,El concepto dice 9 y hay 10 unidades en el listado: el yield del grupo puede estar subestimado.
+WARRENSMID 15 Y LOCALES,Warren Smith 15; Colón 5923; Colón 5911; La Capitanía 1014,PROPUESTO,Warren Smith 15 y los 3 locales comerciales; los locales pertenecen a la sociedad conyugal ('PERSONAL').
+PROPIEDADES CON GERMAN POR PRAGA,Apoquindo 6498; Apoquindo 5701; Warren Smith 32; Rosario Norte 33; Rosario Norte 41,PROPUESTO,"Propiedades de Praga S.A. excluyendo Warren Smith 15, que ya figura en otro concepto."
+ARRIENDOS BOULEBARD,,SIN_IDENTIFICAR,"Ninguna propiedad cargada se llama Boulevard. Es el mayor flujo de arriendo: o falta una propiedad en Bienes_Raices, o tiene otro nombre."
+ARRIENDOS CONSTANTINO 6,,SIN_IDENTIFICAR,No hay ninguna propiedad Constantino en Bienes_Raices.
+FIDEL OTEIZA 1841,,SIN_IDENTIFICAR,Figura como ingreso en el flujo (departamento 41 E) pero no está en Bienes_Raices.

@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "reconcile": "tsx scripts/reconcile.ts"
+    "reconcile": "tsx scripts/reconcile.ts",
+    "check-parity": "tsx scripts/check-parity.ts",
+    "check-sheets": "tsx scripts/check-sheets-robustness.ts",
+    "check-appsscript": "node integrations/google-sheets/test-code-gs.mjs",
+    "sync-sheets": "tsx scripts/sync-sheets.ts",
+    "prebuild": "tsx scripts/sync-sheets.ts",
+    "check-sync": "tsx scripts/check-sync-e2e.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",

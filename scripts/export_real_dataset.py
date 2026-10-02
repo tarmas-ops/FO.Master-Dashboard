@@ -50,6 +50,10 @@ def num(value) -> float | None:
 def clean(value) -> str | None:
     if value is None:
         return None
+    # pandas convierte las celdas vacías en NaN, y str(NaN) es "nan": sin esta guarda un
+    # titular vacío terminaba como una entidad llamada "nan" y una ubicación "..., nan".
+    if isinstance(value, float) and math.isnan(value):
+        return None
     s = str(value).strip()
     return s or None
 
@@ -132,7 +136,7 @@ class EntityRegistry:
         return eid
 
 
-RENT_MAPPING_PATH = Path(__file__).resolve().parent / "rent_mapping.json"
+RENT_MAPPING_PATH = Path(__file__).resolve().parent.parent / "fo-os" / "data" / "real" / "rent_mapping.json"
 
 
 def _add_months(iso: str, months: int) -> str:
@@ -532,6 +536,23 @@ def build() -> dict:
                 "module": "Flujo de caja",
                 "field": "Cuotas de 'Valle Centro' como dividendos",
                 "detail": f"${valle / 1e6:,.1f} MM/año de un pago en 110 cuotas se clasifican como dividendos; parece una cuenta por cobrar, no un retiro de empresa.",
+            }
+        )
+
+    # "Dividendo" en Chile es la cuota de un crédito hipotecario. Si el flujo la paga pero la
+    # hoja de pasivos no registra ningún crédito, el patrimonio neto está sobrestimado por el
+    # saldo insoluto de esa deuda. No se estima el saldo (faltan tasa y plazo): se informa.
+    servicio = {}
+    for t in in_window:
+        if t["category"] == "SERVICIO_DEUDA" and t["type"] == "EGRESO":
+            servicio[t["description"]] = servicio.get(t["description"], 0) + t["amount"]
+    if servicio and not any(not l.get("delinquent") for l in loans):
+        top = ", ".join(f"{k} (${v / 1e6:,.1f} MM)" for k, v in sorted(servicio.items(), key=lambda x: -x[1])[:3])
+        gaps.append(
+            {
+                "module": "Deuda",
+                "field": "Servicio de deuda sin pasivo registrado",
+                "detail": f"El flujo de caja paga ${sum(servicio.values()) / 1e6:,.1f} MM/año en cuotas de crédito ({top}), pero la hoja Pasivos solo registra patentes morosas. Si esos créditos existen, el patrimonio neto está sobrestimado por su saldo insoluto.",
             }
         )
 

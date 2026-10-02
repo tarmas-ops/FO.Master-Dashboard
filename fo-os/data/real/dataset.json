@@ -88,8 +88,8 @@
    "taxId": "76.239.590-8"
   },
   {
-   "id": "e-nan",
-   "name": "nan",
+   "id": "e-sin-titular-identificado",
+   "name": "Sin titular identificado",
    "entityType": "SPV",
    "country": "CL",
    "currency": "CLP"
@@ -443,9 +443,9 @@
    "effectiveDate": "2026-01-01"
   },
   {
-   "id": "o-nan",
+   "id": "o-sin-titular-identificado",
    "ownerEntityId": "fo",
-   "ownedEntityId": "e-nan",
+   "ownedEntityId": "e-sin-titular-identificado",
    "directOwnershipPercentage": 1,
    "votingOwnershipPercentage": 1,
    "effectiveDate": "2026-01-01"
@@ -1472,7 +1472,7 @@
    "country": "CL",
    "currency": "CLP",
    "currentValue": 735300000.0,
-   "ownerEntityId": "e-nan",
+   "ownerEntityId": "e-sin-titular-identificado",
    "ownershipPercentage": 0.089,
    "valuationMethod": "Tasación directa/comercial",
    "valuationQuality": "TASADO",
@@ -1483,7 +1483,7 @@
    "sourceNotes": {
     "avaluoFiscal": null,
     "tasacionComercial": 735300000.0,
-    "rolSII": "nan",
+    "rolSII": null,
     "participacionConfirmada": true
    }
   },
@@ -1525,13 +1525,13 @@
    "valuationMethod": "Tasación directa/comercial",
    "valuationQuality": "TASADO",
    "liquid": false,
-   "location": "Pichilemu av. Punta lobos, nan",
-   "city": "nan",
+   "location": "Pichilemu av. Punta lobos",
+   "city": "Sin comuna",
    "tenants": [],
    "sourceNotes": {
     "avaluoFiscal": null,
     "tasacionComercial": 800000000.0,
-    "rolSII": "nan",
+    "rolSII": null,
     "participacionConfirmada": true
    }
   },
@@ -2839,7 +2839,7 @@
    "id": "fin-16-btg-paula",
    "name": "BTG Paula",
    "assetClass": "MERCADOS_PUBLICOS",
-   "subAssetClass": "nan",
+   "subAssetClass": "Instrumento financiero",
    "sector": "FINANCIERO",
    "country": "CL",
    "currency": "CLP",
@@ -2854,14 +2854,14 @@
    "issuer": "Paula Alvear Román",
    "sourceNotes": {
     "perimetro": "Familia",
-    "nota": "nan"
+    "nota": null
    }
   },
   {
    "id": "fin-17-btg-cristian",
    "name": "BTG Cristián",
    "assetClass": "MERCADOS_PUBLICOS",
-   "subAssetClass": "nan",
+   "subAssetClass": "Instrumento financiero",
    "sector": "FINANCIERO",
    "country": "CL",
    "currency": "CLP",
@@ -2876,14 +2876,14 @@
    "issuer": "Cristián Armas Morel",
    "sourceNotes": {
     "perimetro": "Familia",
-    "nota": "nan"
+    "nota": null
    }
   },
   {
    "id": "fin-18-vantrust-cristian",
    "name": "Vantrust Cristián",
    "assetClass": "MERCADOS_PUBLICOS",
-   "subAssetClass": "nan",
+   "subAssetClass": "Instrumento financiero",
    "sector": "FINANCIERO",
    "country": "CL",
    "currency": "CLP",
@@ -2898,14 +2898,14 @@
    "issuer": "Cristián Armas Morel",
    "sourceNotes": {
     "perimetro": "Familia",
-    "nota": "nan"
+    "nota": null
    }
   },
   {
    "id": "fin-19-credicorp-paula",
    "name": "Credicorp Paula",
    "assetClass": "MERCADOS_PUBLICOS",
-   "subAssetClass": "nan",
+   "subAssetClass": "Instrumento financiero",
    "sector": "FINANCIERO",
    "country": "CL",
    "currency": "CLP",
@@ -2920,14 +2920,14 @@
    "issuer": "Paula Alvear Román",
    "sourceNotes": {
     "perimetro": "Familia",
-    "nota": "nan"
+    "nota": null
    }
   },
   {
    "id": "fin-20-credicorp-cristian",
    "name": "Credicorp Cristián",
    "assetClass": "MERCADOS_PUBLICOS",
-   "subAssetClass": "nan",
+   "subAssetClass": "Instrumento financiero",
    "sector": "FINANCIERO",
    "country": "CL",
    "currency": "CLP",
@@ -2942,7 +2942,7 @@
    "issuer": "Cristián Armas Morel",
    "sourceNotes": {
     "perimetro": "Familia",
-    "nota": "nan"
+    "nota": null
    }
   },
   {
@@ -35173,6 +35173,11 @@
     "module": "Flujo de caja",
     "field": "Cuotas de 'Valle Centro' como dividendos",
     "detail": "$14.9 MM/año de un pago en 110 cuotas se clasifican como dividendos; parece una cuenta por cobrar, no un retiro de empresa."
+   },
+   {
+    "module": "Deuda",
+    "field": "Servicio de deuda sin pasivo registrado",
+    "detail": "El flujo de caja paga $146.3 MM/año en cuotas de crédito (PAGO DIVIDENDO CASA SANTUARIO SANTANDER (UF) ($119.4 MM), DIVIDENDOS CONSTANTINO ($26.9 MM)), pero la hoja Pasivos solo registra patentes morosas. Si esos créditos existen, el patrimonio neto está sobrestimado por su saldo insoluto."
    }
   ],
   "excelTotals": {
