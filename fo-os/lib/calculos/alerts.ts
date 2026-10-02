@@ -1,4 +1,5 @@
 import type { Database } from "@/types";
+import { formatCLPFull } from "@/lib/formatters";
 import { calculateLiquidity } from "./liquidity";
 import { calculateNetWorth } from "./networth";
 import { familyOwnershipOfEntity } from "./ownership";
@@ -71,25 +72,44 @@ export function calculatePortfolioAlerts(db: Database): PortfolioAlert[] {
     }
   }
 
+  // Las deudas morosas se agrupan en una sola alerta: cinco alertas críticas por patentes
+  // pequeñas taparían el resto, y lo accionable es el conjunto, no cada una.
+  const delinquent = db.loans.filter((l) => l.delinquent);
+  if (delinquent.length > 0) {
+    const total = delinquent.reduce((a, l) => a + l.balance, 0);
+    alerts.push({
+      id: "delinquent-debt",
+      kind: "VENCIMIENTO_DEUDA",
+      severity: "CRITICA",
+      title: `${delinquent.length} ${delinquent.length === 1 ? "deuda morosa" : "deudas morosas"} por ${formatCLPFull(total)}`,
+      detail: `${delinquent.map((l) => l.name.replace(/^Patente comercial morosa — /, "").replace(/\.$/, "")).join(", ")}. La fuente las registra en mora y no informa fecha de vencimiento.`,
+      href: "/deuda",
+    });
+  }
+
   for (const loan of db.loans) {
-    const months = monthsUntil(loan.maturityDate, db.asOf);
-    // Una deuda ya vencida es más urgente que una por vencer, no menos: se alerta igual,
-    // con el texto que corresponde en vez de "en 0 meses".
-    if (months <= ALERT_THRESHOLDS.debtMaturityMonths) {
-      const title =
-        months < 0
-          ? `Deuda vencida hace ${Math.abs(months)} ${Math.abs(months) === 1 ? "mes" : "meses"}`
-          : months === 0
-            ? "Deuda que vence este mes"
-            : `Vencimiento de deuda en ${months} ${months === 1 ? "mes" : "meses"}`;
-      alerts.push({
-        id: `maturity-${loan.id}`,
-        kind: "VENCIMIENTO_DEUDA",
-        severity: "CRITICA",
-        title,
-        detail: `${loan.name} (${loan.bank}) vence el ${loan.maturityDate}.`,
-        href: "/deuda",
-      });
+    if (loan.delinquent) {
+      // Ya cubierta por la alerta agrupada.
+      continue;
+    }
+    if (loan.maturityDate) {
+      const months = monthsUntil(loan.maturityDate, db.asOf);
+      if (months <= ALERT_THRESHOLDS.debtMaturityMonths) {
+        const title =
+          months < 0
+            ? `Deuda vencida hace ${Math.abs(months)} ${Math.abs(months) === 1 ? "mes" : "meses"}`
+            : months === 0
+              ? "Deuda que vence este mes"
+              : `Vencimiento de deuda en ${months} ${months === 1 ? "mes" : "meses"}`;
+        alerts.push({
+          id: `maturity-${loan.id}`,
+          kind: "VENCIMIENTO_DEUDA",
+          severity: "CRITICA",
+          title,
+          detail: `${loan.name} (${loan.bank}) vence el ${loan.maturityDate}.`,
+          href: "/deuda",
+        });
+      }
     }
     if (loan.rateType === "VARIABLE" && loan.rate >= ALERT_THRESHOLDS.variableRateWarning) {
       alerts.push({

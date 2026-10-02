@@ -769,7 +769,6 @@
    "name": "Apoquindo 6498, Unidad 702 (A)",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -777,7 +776,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Apoquindo 6498, Unidad 702 (A), Las Condes",
    "city": "Las Condes",
@@ -795,7 +794,6 @@
    "name": "Apoquindo 5701",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Oficina",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -803,7 +801,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Apoquindo 5701, Las Condes",
    "city": "Las Condes",
@@ -821,7 +819,6 @@
    "name": "Warren Smith 32",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -829,7 +826,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Warren Smith 32, Las Condes",
    "city": "Las Condes",
@@ -847,7 +844,6 @@
    "name": "Warren Smith 15",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -855,7 +851,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Warren Smith 15, Las Condes",
    "city": "Las Condes",
@@ -873,7 +869,6 @@
    "name": "Rosario Norte 33",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -881,7 +876,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Rosario Norte 33, Las Condes",
    "city": "Las Condes",
@@ -899,7 +894,6 @@
    "name": "Rosario Norte 41",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -907,7 +901,7 @@
    "ownerEntityId": "e-praga-s-a",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Rosario Norte 41, Las Condes",
    "city": "Las Condes",
@@ -925,7 +919,6 @@
    "name": "Las Condes 10465, Unidad Ofc 717 ps7 edificio",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Oficina",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -933,7 +926,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Las Condes 10465, Unidad Ofc 717 ps7 edificio, Las Condes",
    "city": "Las Condes",
@@ -951,7 +944,6 @@
    "name": "Colón 5923, Unidad L 10",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Local Comercial",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -959,7 +951,7 @@
    "ownerEntityId": "e-cristian-armas-paula-alvear",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Colón 5923, Unidad L 10, Las Condes",
    "city": "Las Condes",
@@ -977,7 +969,6 @@
    "name": "Colón 5911, Unidad L 12-A",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Local Comercial",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -985,7 +976,7 @@
    "ownerEntityId": "e-cristian-armas-paula-alvear",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Colón 5911, Unidad L 12-A, Las Condes",
    "city": "Las Condes",
@@ -1003,7 +994,6 @@
    "name": "La Capitanía 1014, Unidad L 16",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Local Comercial",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1011,7 +1001,7 @@
    "ownerEntityId": "e-cristian-armas-paula-alvear",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "La Capitanía 1014, Unidad L 16, Las Condes",
    "city": "Las Condes",
@@ -1029,7 +1019,6 @@
    "name": "JJ Prieto 4260, Unidad 208",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1037,7 +1026,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "JJ Prieto 4260, Unidad 208, San Miguel",
    "city": "San Miguel",
@@ -1055,7 +1044,6 @@
    "name": "JJ Prieto 4260, Unidad 308",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1063,7 +1051,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "JJ Prieto 4260, Unidad 308, San Miguel",
    "city": "San Miguel",
@@ -1081,7 +1069,6 @@
    "name": "JJ Prieto 4260, Unidad 408",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1089,7 +1076,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "JJ Prieto 4260, Unidad 408, San Miguel",
    "city": "San Miguel",
@@ -1107,7 +1094,6 @@
    "name": "Mario Kreutzberger 1520, Bod 71",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Bodega",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1115,7 +1101,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Bod 71, Santiago",
    "city": "Santiago",
@@ -1133,7 +1119,6 @@
    "name": "Mario Kreutzberger 1520, Bod 78",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Bodega",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1141,7 +1126,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Bod 78, Santiago",
    "city": "Santiago",
@@ -1159,7 +1144,6 @@
    "name": "Mario Kreutzberger 1520, Bod 79",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Bodega",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1167,7 +1151,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Bod 79, Santiago",
    "city": "Santiago",
@@ -1185,7 +1169,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 816A",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1193,7 +1176,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 816A, Santiago",
    "city": "Santiago",
@@ -1211,7 +1194,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2704Ab",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1219,7 +1201,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2704Ab, Santiago",
    "city": "Santiago",
@@ -1237,7 +1219,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2708A",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1245,7 +1226,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2708A, Santiago",
    "city": "Santiago",
@@ -1263,7 +1244,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2714B",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1271,7 +1251,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2714B, Santiago",
    "city": "Santiago",
@@ -1289,7 +1269,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2211B",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1297,7 +1276,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2211B, Santiago",
    "city": "Santiago",
@@ -1315,7 +1294,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2505B",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1323,7 +1301,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2505B, Santiago",
    "city": "Santiago",
@@ -1341,7 +1319,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2208A",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1349,7 +1326,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2208A, Santiago",
    "city": "Santiago",
@@ -1367,7 +1344,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2412B",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1375,7 +1351,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2412B, Santiago",
    "city": "Santiago",
@@ -1393,7 +1369,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 911B",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1401,7 +1376,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 911B, Santiago",
    "city": "Santiago",
@@ -1419,7 +1394,6 @@
    "name": "Mario Kreutzberger 1520, Unidad 2308A",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1427,7 +1401,7 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Avalúo Fiscal x factor (proxy)",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "PROXY",
    "liquid": false,
    "location": "Mario Kreutzberger 1520, Unidad 2308A, Santiago",
    "city": "Santiago",
@@ -1445,7 +1419,6 @@
    "name": "Casa Santuario (dirección pendiente de confirmar)",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1453,7 +1426,7 @@
    "ownerEntityId": "e-inversiones-san-salvador-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "Casa Santuario (dirección pendiente de confirmar), Pendiente",
    "city": "Pendiente",
@@ -1471,7 +1444,6 @@
    "name": "Local Av. La dehesa",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Local Comercial",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1479,7 +1451,7 @@
    "ownerEntityId": "e-inversiones-meme-ltda",
    "ownershipPercentage": 0.4,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "Local Av. La dehesa, Lo barnechea",
    "city": "Lo barnechea",
@@ -1496,7 +1468,6 @@
    "name": "tajamar con encomenderos",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "departamento",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1504,7 +1475,7 @@
    "ownerEntityId": "e-nan",
    "ownershipPercentage": 0.089,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "tajamar con encomenderos, Las Condes",
    "city": "Las Condes",
@@ -1521,7 +1492,6 @@
    "name": "Cementerio Zapallar",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Lotes Cementerio",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1529,7 +1499,7 @@
    "ownerEntityId": "e-cristian-armas-paula-alvear",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "Cementerio Zapallar, Zapallar",
    "city": "Zapallar",
@@ -1546,7 +1516,6 @@
    "name": "Pichilemu av. Punta lobos",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Casa Nuba PL",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1554,7 +1523,7 @@
    "ownerEntityId": "e-nv-punta-lobos",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "Pichilemu av. Punta lobos, nan",
    "city": "nan",
@@ -1571,7 +1540,6 @@
    "name": "Strip Center Machalí (dirección pendiente de confirmar)",
    "assetClass": "INMOBILIARIO",
    "subAssetClass": "Strip Center",
-   "realEstateType": "RETAIL",
    "sector": "INMOBILIARIO",
    "country": "CL",
    "currency": "CLP",
@@ -1579,7 +1547,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 0.35,
    "valuationMethod": "Tasación directa/comercial",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "TASADO",
    "liquid": false,
    "location": "Strip Center Machalí (dirección pendiente de confirmar), Machalí",
    "city": "Machalí",
@@ -1603,7 +1571,7 @@
    "ownerEntityId": "e-capital-office-spa",
    "ownershipPercentage": 0.3,
    "valuationMethod": "% participación × patrimonio contable",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "CONTABLE",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1625,7 +1593,7 @@
    "ownerEntityId": "e-inmobiliaria-miraflores-chillan-spa",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1647,7 +1615,7 @@
    "ownerEntityId": "e-constructora-de-viviendas-sociales-spa",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1669,7 +1637,7 @@
    "ownerEntityId": "e-sociedad-importadora-y-exportadora-one-two-one-s-a",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1691,7 +1659,7 @@
    "ownerEntityId": "e-asesorias-inversiones-y-eventos-cam-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1713,7 +1681,7 @@
    "ownerEntityId": "e-inmobiliaria-nueva-vida-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1735,7 +1703,7 @@
    "ownerEntityId": "e-inmobiliaria-el-encanto-de-santa-cruz-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1757,7 +1725,7 @@
    "ownerEntityId": "e-ainspecciona-spa",
    "ownershipPercentage": 0.45,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1779,7 +1747,7 @@
    "ownerEntityId": "e-inmobiliaria-y-constructora-evolution-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1801,7 +1769,7 @@
    "ownerEntityId": "e-inversiones-san-salvador-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1823,7 +1791,7 @@
    "ownerEntityId": "e-constructora-armas-mariategui-spa",
    "ownershipPercentage": 0.8,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1845,7 +1813,7 @@
    "ownerEntityId": "e-constructora-armas-serrano-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1867,7 +1835,7 @@
    "ownerEntityId": "e-consultora-gan-limitada",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1889,7 +1857,7 @@
    "ownerEntityId": "e-asesorias-e-inversiones-tromen-limitada",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1911,7 +1879,7 @@
    "ownerEntityId": "e-dos-mas-dos-s-a",
    "ownershipPercentage": 0.001,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1933,7 +1901,7 @@
    "ownerEntityId": "e-inversiones-y-rentas-aspid-spa",
    "ownershipPercentage": 0.005,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1955,7 +1923,7 @@
    "ownerEntityId": "e-constructora-armas-san-francisco-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1977,7 +1945,7 @@
    "ownerEntityId": "e-constructora-armas-las-condes-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -1999,7 +1967,7 @@
    "ownerEntityId": "e-arbal-constructora-y-servicios-de-marketing-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2021,7 +1989,7 @@
    "ownerEntityId": "e-gestora-condominios-del-sur-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2043,7 +2011,7 @@
    "ownerEntityId": "e-inversiones-gan-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2065,7 +2033,7 @@
    "ownerEntityId": "e-transportes-armas-limitada",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2087,7 +2055,7 @@
    "ownerEntityId": "e-nv-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2109,7 +2077,7 @@
    "ownerEntityId": "e-fractal-constructora-y-servicios-de-marketing-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2131,7 +2099,7 @@
    "ownerEntityId": "e-inversiones-alborada-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2153,7 +2121,7 @@
    "ownerEntityId": "e-asesorias-e-inversiones-akron-spa",
    "ownershipPercentage": 0.5,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2175,7 +2143,7 @@
    "ownerEntityId": "e-constructora-armas-cerro-colorado-spa",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2197,7 +2165,7 @@
    "ownerEntityId": "e-inversiones-san-benito-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2219,7 +2187,7 @@
    "ownerEntityId": "e-capellania-capacitacion-limitada",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2241,7 +2209,7 @@
    "ownerEntityId": "e-gestora-fractal-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2263,7 +2231,7 @@
    "ownerEntityId": "e-constructora-armas-padre-mariano-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2285,7 +2253,7 @@
    "ownerEntityId": "e-design-apart-spa",
    "ownershipPercentage": 1,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2307,7 +2275,7 @@
    "ownerEntityId": "e-inmob-armas-irarrazaval-ltda",
    "ownershipPercentage": 1.0,
    "valuationMethod": "Sin EEFF cargados",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "SIN_DATO",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2329,7 +2297,7 @@
    "ownerEntityId": "e-empresas-armas-s-a-easa",
    "ownershipPercentage": 0.19,
    "valuationMethod": "% participación × patrimonio contable",
-   "lastValuationDate": "2026-08-30",
+   "valuationQuality": "CONTABLE",
    "liquid": false,
    "history": [],
    "sourceNotes": {
@@ -2351,7 +2319,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2372,7 +2341,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Paula Alvear Román",
    "accountType": "Familia",
@@ -2393,7 +2363,8 @@
    "ownerEntityId": "e-cristian-armas-morel-paula-alvear-cuenta-conjunta",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel / Paula Alvear (cuenta conjunta)",
    "accountType": "Familia",
@@ -2414,7 +2385,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Paula Alvear Román",
    "accountType": "Familia",
@@ -2435,7 +2407,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2456,7 +2429,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2477,7 +2451,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2498,7 +2473,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2519,7 +2495,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2540,7 +2517,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Paula Alvear Román",
    "accountType": "Familia",
@@ -2561,7 +2539,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2582,7 +2561,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Cristián Armas Morel",
    "accountType": "Familia",
@@ -2603,7 +2583,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Familia (caja)",
    "accountType": "Familia",
@@ -2624,7 +2605,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Saldo declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "bank": "Familia",
    "accountType": "Familia",
@@ -2645,7 +2627,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "ACCIONES-POL",
    "issuer": "Paula Alvear Román",
@@ -2666,7 +2649,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CITIFY",
    "issuer": "Paula Alvear Román",
@@ -2687,7 +2671,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "APV-CRISTIAN",
    "issuer": "Cristián Armas Morel",
@@ -2708,7 +2693,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "DOLARES-BICE",
    "issuer": "Paula Alvear Román",
@@ -2729,7 +2715,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FRACCIONAL",
    "issuer": "Cristián Armas Morel",
@@ -2750,7 +2737,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-BICE-PAUL",
    "issuer": "Paula Alvear Román",
@@ -2771,7 +2759,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-BANCO-EST",
    "issuer": "Cristián Armas Morel",
@@ -2792,7 +2781,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-BANCO-EST",
    "issuer": "Paula Alvear Román",
@@ -2813,7 +2803,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-BICE-CAM",
    "issuer": "Cristián Armas Morel",
@@ -2834,7 +2825,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-FALABELLA",
    "issuer": "Paula Alvear Román",
@@ -2855,7 +2847,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "BTG-PAULA",
    "issuer": "Paula Alvear Román",
@@ -2876,7 +2869,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "BTG-CRISTIAN",
    "issuer": "Cristián Armas Morel",
@@ -2897,7 +2891,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "VANTRUST-CRI",
    "issuer": "Cristián Armas Morel",
@@ -2918,7 +2913,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CREDICORP-PA",
    "issuer": "Paula Alvear Román",
@@ -2939,7 +2935,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CREDICORP-CR",
    "issuer": "Cristián Armas Morel",
@@ -2960,7 +2957,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-SANTANDER",
    "issuer": "Paula Alvear Román",
@@ -2981,7 +2979,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-SANTANDER",
    "issuer": "Cristián Armas Morel",
@@ -3002,7 +3001,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "FM-SECURITY-",
    "issuer": "Paula Alvear Román",
@@ -3023,7 +3023,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CRYPTOMARKET",
    "issuer": "Cristián Armas Morel",
@@ -3044,7 +3045,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "SALDO-HABITA",
    "issuer": "Paula Alvear Román",
@@ -3065,7 +3067,8 @@
    "ownerEntityId": "e-cristian-armas-morel",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CTA-DOLARES-",
    "issuer": "Cristián Armas Morel",
@@ -3086,7 +3089,8 @@
    "ownerEntityId": "e-paula-alvear-roman",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "CTA-DOLARES-",
    "issuer": "Paula Alvear Román",
@@ -3107,7 +3111,8 @@
    "ownerEntityId": "e-cristian-armas-morel-asumido-confirmar-titular",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": true,
    "ticker": "COLLINS-PARK",
    "issuer": "Cristián Armas Morel (asumido — confirmar titular)",
@@ -3128,7 +3133,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor nominal",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3143,7 +3149,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor nominal",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3158,7 +3165,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor nominal",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3173,7 +3181,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor nominal",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3188,7 +3197,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3203,7 +3213,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3218,7 +3229,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3233,7 +3245,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   },
   {
@@ -3248,7 +3261,8 @@
    "ownerEntityId": "fo",
    "ownershipPercentage": 1,
    "valuationMethod": "Valor declarado",
-   "lastValuationDate": "2026-08-30",
+   "lastValuationDate": "2026-07-17",
+   "valuationQuality": "SALDO",
    "liquid": false
   }
  ],
@@ -3265,8 +3279,7 @@
    "rateType": "FIJA",
    "amortization": "BULLET",
    "amortizationYears": 0,
-   "originationDate": "2026-08-30",
-   "maturityDate": "2026-08-30",
+   "delinquent": true,
    "annualDebtService": 373841.0
   },
   {
@@ -3281,8 +3294,7 @@
    "rateType": "FIJA",
    "amortization": "BULLET",
    "amortizationYears": 0,
-   "originationDate": "2026-08-30",
-   "maturityDate": "2026-08-30",
+   "delinquent": true,
    "annualDebtService": 8673561.0
   },
   {
@@ -3297,8 +3309,7 @@
    "rateType": "FIJA",
    "amortization": "BULLET",
    "amortizationYears": 0,
-   "originationDate": "2026-08-30",
-   "maturityDate": "2026-08-30",
+   "delinquent": true,
    "annualDebtService": 35025.0
   },
   {
@@ -3313,8 +3324,7 @@
    "rateType": "FIJA",
    "amortization": "BULLET",
    "amortizationYears": 0,
-   "originationDate": "2026-08-30",
-   "maturityDate": "2026-08-30",
+   "delinquent": true,
    "annualDebtService": 592649.0
   },
   {
@@ -3329,8 +3339,7 @@
    "rateType": "FIJA",
    "amortization": "BULLET",
    "amortizationYears": 0,
-   "originationDate": "2026-08-30",
-   "maturityDate": "2026-08-30",
+   "delinquent": true,
    "annualDebtService": 2066998.0
   }
  ],
@@ -3346,7 +3355,7 @@
    "amount": 2635000.0,
    "currency": "CLP",
    "description": "PENSIONES (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2",
@@ -4066,7 +4075,7 @@
    "amount": 3440000.0,
    "currency": "CLP",
    "description": "RETIROS EMPRESAS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-62",
@@ -4786,7 +4795,7 @@
    "amount": 1800000.0,
    "currency": "CLP",
    "description": "ARRIENDOS MK 9",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-122",
@@ -5506,7 +5515,7 @@
    "amount": 1000000.0,
    "currency": "CLP",
    "description": "ARRIENDOS JJ 3 PRIETO",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-182",
@@ -6226,7 +6235,7 @@
    "amount": 230000.0,
    "currency": "CLP",
    "description": "ARRIENDO BODEGAS Y ESTACIONAMIENTOS  MK 3B JJP 3E3B",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-242",
@@ -6946,7 +6955,7 @@
    "amount": 350000.0,
    "currency": "CLP",
    "description": "FIDEL OTEIZA 1841 DEPARTAMENTO 41 E",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-302",
@@ -7666,7 +7675,7 @@
    "amount": 650000.0,
    "currency": "CLP",
    "description": "ARRIENDOS OFICINA LAS CONDES ESTORIL  (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-362",
@@ -8386,7 +8395,7 @@
    "amount": 1260000.0,
    "currency": "CLP",
    "description": "ARRIENDOS CONSTANTINO 6",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-422",
@@ -9106,7 +9115,7 @@
    "amount": 520000.0,
    "currency": "CLP",
    "description": "ADMINISTRADORA BBRR",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-482",
@@ -9334,7 +9343,7 @@
    "amount": 2373887.24035608,
    "currency": "CLP",
    "description": "SUELDO PAULA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-501",
@@ -10138,7 +10147,7 @@
    "amount": 4900000.0,
    "currency": "CLP",
    "description": "PAGOS MEME ARRIENDO A BANCO ITAU RODRIGO FUENZALIDA (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-568",
@@ -10858,7 +10867,7 @@
    "amount": 4538267.0,
    "currency": "CLP",
    "description": "INTERESES INVERSIONES FINANCIERAS (**conectar a dividendos de renta variable resultante)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-628",
@@ -11578,7 +11587,7 @@
    "amount": 1614000.0,
    "currency": "CLP",
    "description": "ARRIENDOS PROPIEDADES CON GERMAN PERSONAL WARRENSMID 15 Y LOCALES (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-688",
@@ -12298,7 +12307,7 @@
    "amount": 3574385.0,
    "currency": "CLP",
    "description": "ARRIENDOS PROPIEDADES CON GERMAN POR PRAGA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-748",
@@ -13018,7 +13027,7 @@
    "amount": 1276562.5,
    "currency": "CLP",
    "description": "PAGO VALLE CENTRO A NV (UF 31,25) ** 110 cuotas",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-808",
@@ -13858,7 +13867,7 @@
    "amount": 8806064.0,
    "currency": "CLP",
    "description": "ARRIENDOS BOULEBARD",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-878",
@@ -14578,7 +14587,7 @@
    "amount": 4389035.0,
    "currency": "CLP",
    "description": "Efecto Inflacion",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-938",
@@ -15298,7 +15307,7 @@
    "amount": 9950000.0,
    "currency": "CLP",
    "description": "PAGO DIVIDENDO CASA SANTUARIO SANTANDER (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-998",
@@ -15802,7 +15811,7 @@
    "amount": 280000.0,
    "currency": "CLP",
    "description": "ADMINISTRACION PROPIEDADES",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1040",
@@ -16522,7 +16531,7 @@
    "amount": 31603.0,
    "currency": "CLP",
    "description": "AGUA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1100",
@@ -17242,7 +17251,7 @@
    "amount": 685800.0,
    "currency": "CLP",
    "description": "NANAS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1160",
@@ -18010,7 +18019,7 @@
    "amount": 60000.0,
    "currency": "CLP",
    "description": "ARRIENDO DOS ESTACIONAMIENTOS LA LUMA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1224",
@@ -18298,7 +18307,7 @@
    "amount": 3500000.0,
    "currency": "CLP",
    "description": "ARRIENDO LA LUMA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1248",
@@ -18634,7 +18643,7 @@
    "amount": 350000.0,
    "currency": "CLP",
    "description": "AUTOS BENCINA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1276",
@@ -19354,7 +19363,7 @@
    "amount": 345902.0,
    "currency": "CLP",
    "description": "BODEGA PASEO TAMARUGO",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1336",
@@ -19906,7 +19915,7 @@
    "amount": 1250000.0,
    "currency": "CLP",
    "description": "CAROLA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1382",
@@ -21130,7 +21139,7 @@
    "amount": 3000000.0,
    "currency": "CLP",
    "description": "COMIDA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1484",
@@ -21862,7 +21871,7 @@
    "amount": 740000.0,
    "currency": "CLP",
    "description": "Contabilidad ITALO",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1545",
@@ -22174,7 +22183,7 @@
    "amount": 550000.0,
    "currency": "CLP",
    "description": "Contabilidad Tributaria LENA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1571",
@@ -23398,7 +23407,7 @@
    "amount": 2240854.0,
    "currency": "CLP",
    "description": "DIVIDENDOS CONSTANTINO",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1673",
@@ -24118,7 +24127,7 @@
    "amount": 700000.0,
    "currency": "CLP",
    "description": "DOCTORES",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1733",
@@ -24838,7 +24847,7 @@
    "amount": 44000.0,
    "currency": "CLP",
    "description": "GAS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1793",
@@ -25786,7 +25795,7 @@
    "amount": 880000.0,
    "currency": "CLP",
    "description": "GASTOS COMUNES LA LUMA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1872",
@@ -26206,7 +26215,7 @@
    "amount": 100000.0,
    "currency": "CLP",
    "description": "COMISIONES PROPIEDAES",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1907",
@@ -26626,7 +26635,7 @@
    "amount": 650000.0,
    "currency": "CLP",
    "description": "CONTABILIDAD BAKER",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1942",
@@ -27046,7 +27055,7 @@
    "amount": 120000.0,
    "currency": "CLP",
    "description": "GASTOS COMUNES Y ARREGLOS PROPIEDADES DE RENTA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1977",
@@ -27274,7 +27283,7 @@
    "amount": 800000.0,
    "currency": "CLP",
    "description": "HONORARIOS JUICIO VILLABLANCA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-1996",
@@ -27334,7 +27343,7 @@
    "amount": 700000.0,
    "currency": "CLP",
    "description": "IMPUESTOS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2001",
@@ -28054,7 +28063,7 @@
    "amount": 450000.0,
    "currency": "CLP",
    "description": "ISAPRES",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2061",
@@ -28774,7 +28783,7 @@
    "amount": 276100.0,
    "currency": "CLP",
    "description": "LUZ",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2121",
@@ -29518,7 +29527,7 @@
    "amount": 200000.0,
    "currency": "CLP",
    "description": "PAGO MENSUAL TUMBA ZAPALLAR CUOTAS Y MANTENCION",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2183",
@@ -29734,7 +29743,7 @@
    "amount": 1000000.0,
    "currency": "CLP",
    "description": "HONORARIOS FO",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2201",
@@ -30526,7 +30535,7 @@
    "amount": 507234.0,
    "currency": "CLP",
    "description": "CUOTAS MENSUALES CLUB DE POLO (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2267",
@@ -31246,7 +31255,7 @@
    "amount": 400000.0,
    "currency": "CLP",
    "description": "FARMACIA",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2327",
@@ -31966,7 +31975,7 @@
    "amount": 4023392.0,
    "currency": "CLP",
    "description": "RETIROS EMPRESAS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2387",
@@ -32686,7 +32695,7 @@
    "amount": 700000.0,
    "currency": "CLP",
    "description": "SEGUROS DE VIDA Y COMPLEMENTARIO CLINICA LAS CONDES",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2447",
@@ -33406,7 +33415,7 @@
    "amount": 599928.0,
    "currency": "CLP",
    "description": "SEGUROS AUTOS CAM AGOSTO, PAR OCTUBRE (UF)",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2507",
@@ -33526,7 +33535,7 @@
    "amount": 90000.0,
    "currency": "CLP",
    "description": "TAGS",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2517",
@@ -34246,7 +34255,7 @@
    "amount": 620882.0,
    "currency": "CLP",
    "description": "Efecto Inflacion",
-   "realized": true
+   "realized": false
   },
   {
    "id": "tx-2577",
@@ -34966,17 +34975,150 @@
  "decisions": [],
  "deals": [],
  "netWorthHistory": [],
+ "rentStreams": [
+  {
+   "id": "rent-0",
+   "concept": "JJ 3 PRIETO",
+   "annualRent": 12000000,
+   "assetIds": [
+    "re-11-jj-prieto-4260-unidad-208",
+    "re-12-jj-prieto-4260-unidad-308",
+    "re-13-jj-prieto-4260-unidad-408"
+   ],
+   "status": "PROPUESTO",
+   "note": "3 unidades en JJ Prieto 4260 (208, 308, 408)."
+  },
+  {
+   "id": "rent-1",
+   "concept": "PAGOS MEME ARRIENDO A BANCO ITAU",
+   "annualRent": 58800000,
+   "assetIds": [
+    "re-29-local-av-la-dehesa"
+   ],
+   "status": "PROPUESTO",
+   "note": "El local pertenece a Inversiones Meme Ltda, que da nombre al concepto."
+  },
+  {
+   "id": "rent-2",
+   "concept": "OFICINA LAS CONDES ESTORIL",
+   "annualRent": 7800000,
+   "assetIds": [
+    "re-7-las-condes-10465-unidad-ofc-717-ps7-edif"
+   ],
+   "status": "PROPUESTO",
+   "note": "Única oficina en Las Condes del listado; la calle Estoril no figura en la dirección."
+  },
+  {
+   "id": "rent-3",
+   "concept": "BODEGAS Y ESTACIONAMIENTOS",
+   "annualRent": 2760000,
+   "assetIds": [
+    "re-14-mario-kreutzberger-1520-bod-71",
+    "re-15-mario-kreutzberger-1520-bod-78",
+    "re-16-mario-kreutzberger-1520-bod-79"
+   ],
+   "status": "PROPUESTO",
+   "note": "'MK 3B' sugiere 3 bodegas en Mario Kreutzberger; el concepto también menciona JJP, que no se pudo separar."
+  },
+  {
+   "id": "rent-4",
+   "concept": "ARRIENDOS MK 9",
+   "annualRent": 21600000,
+   "assetIds": [
+    "re-17-mario-kreutzberger-1520-unidad-816a",
+    "re-18-mario-kreutzberger-1520-unidad-2704ab",
+    "re-19-mario-kreutzberger-1520-unidad-2708a",
+    "re-20-mario-kreutzberger-1520-unidad-2714b",
+    "re-21-mario-kreutzberger-1520-unidad-2211b",
+    "re-22-mario-kreutzberger-1520-unidad-2505b",
+    "re-23-mario-kreutzberger-1520-unidad-2208a",
+    "re-24-mario-kreutzberger-1520-unidad-2412b",
+    "re-25-mario-kreutzberger-1520-unidad-911b",
+    "re-26-mario-kreutzberger-1520-unidad-2308a"
+   ],
+   "status": "PROPUESTO",
+   "note": "El concepto dice 9 y hay 10 unidades en el listado: el yield del grupo puede estar subestimado."
+  },
+  {
+   "id": "rent-5",
+   "concept": "WARRENSMID 15 Y LOCALES",
+   "annualRent": 19368000,
+   "assetIds": [
+    "re-4-warren-smith-15",
+    "re-8-colon-5923-unidad-l-10",
+    "re-9-colon-5911-unidad-l-12-a",
+    "re-10-la-capitania-1014-unidad-l-16"
+   ],
+   "status": "PROPUESTO",
+   "note": "Warren Smith 15 y los 3 locales comerciales; los locales pertenecen a la sociedad conyugal ('PERSONAL')."
+  },
+  {
+   "id": "rent-6",
+   "concept": "PROPIEDADES CON GERMAN POR PRAGA",
+   "annualRent": 42892620,
+   "assetIds": [
+    "re-1-apoquindo-6498-unidad-702-a",
+    "re-2-apoquindo-5701",
+    "re-3-warren-smith-32",
+    "re-5-rosario-norte-33",
+    "re-6-rosario-norte-41"
+   ],
+   "status": "PROPUESTO",
+   "note": "Propiedades de Praga S.A. excluyendo Warren Smith 15, que ya figura en otro concepto."
+  },
+  {
+   "id": "rent-7",
+   "concept": "ARRIENDOS BOULEBARD",
+   "annualRent": 105672768,
+   "assetIds": [],
+   "status": "SIN_IDENTIFICAR",
+   "note": "Ninguna propiedad cargada se llama Boulevard. Es el mayor flujo de arriendo: o falta una propiedad en Bienes_Raices, o tiene otro nombre."
+  },
+  {
+   "id": "rent-8",
+   "concept": "ARRIENDOS CONSTANTINO 6",
+   "annualRent": 15120000,
+   "assetIds": [],
+   "status": "SIN_IDENTIFICAR",
+   "note": "No hay ninguna propiedad Constantino en Bienes_Raices."
+  },
+  {
+   "id": "rent-9",
+   "concept": "FIDEL OTEIZA 1841",
+   "annualRent": 4200000,
+   "assetIds": [],
+   "status": "SIN_IDENTIFICAR",
+   "note": "Figura como ingreso en el flujo (departamento 41 E) pero no está en Bienes_Raices."
+  }
+ ],
  "fx": {
   "UF": 40844.79,
   "USD": 0,
-  "asOf": "2026-08-30"
+  "asOf": "2026-07-17"
  },
  "allocationTargets": [],
- "asOf": "2026-08-30",
+ "asOf": "2026-07-17",
  "dataCoverage": {
   "source": "FO_Master_Consolidado.xlsx",
-  "loadedAt": "2026-08-30 20:37",
+  "loadedAt": "2026-10-02 15:37",
+  "balanceAsOf": "2026-07-17",
+  "cashflowAsOf": "2025-10-11",
   "gaps": [
+   {
+    "module": "Inmobiliario",
+    "field": "Propiedades sin valor",
+    "detail": "No se cargaron por no tener tasación ni avalúo: La cabaña."
+   },
+   {
+    "module": "Inmobiliario",
+    "field": "Tasaciones comerciales",
+    "detail": "26 de 32 propiedades se valoran con avalúo fiscal × factor, un proxy; el valor real puede diferir."
+   },
+   {
+    "module": "General",
+    "field": "Tipo de cambio USD/CLP",
+    "detail": "La hoja Supuestos lo marca como PENDIENTE; sin él no se puede medir la exposición en dólares."
+   },
    {
     "module": "Inmobiliario",
     "field": "NOI, arriendos, ocupación, WALE, arrendatarios",
@@ -35016,6 +35158,21 @@
     "module": "Deuda",
     "field": "Tasas, plazos y calendario de vencimientos",
     "detail": "Las patentes morosas son deuda exigible sin tasa ni cuadro de amortización declarados."
+   },
+   {
+    "module": "Flujo de caja",
+    "field": "Arriendos sin propiedad identificada",
+    "detail": "$125.0 MM/año de arriendo no calza con ninguna propiedad cargada: ARRIENDOS BOULEBARD ($105.7 MM), ARRIENDOS CONSTANTINO 6 ($15.1 MM), FIDEL OTEIZA 1841 ($4.2 MM). O faltan propiedades en Bienes_Raices, o llevan otro nombre."
+   },
+   {
+    "module": "Flujo de caja",
+    "field": "'Efecto Inflación' contado como ingreso",
+    "detail": "$60.3 MM en los próximos 12 meses figuran como ingreso, pero un ajuste por inflación no es caja. Infla los ingresos y el flujo neto proyectado."
+   },
+   {
+    "module": "Flujo de caja",
+    "field": "Cuotas de 'Valle Centro' como dividendos",
+    "detail": "$14.9 MM/año de un pago en 110 cuotas se clasifican como dividendos; parece una cuenta por cobrar, no un retiro de empresa."
    }
   ],
   "excelTotals": {

@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import datetime
+
 import openpyxl
 import pandas as pd
 
@@ -129,6 +131,21 @@ class FOData:
 # --------------------------------------------------------------------------- #
 
 
+def _parse_fecha(value: Any) -> str | None:
+    """Fecha ISO (YYYY-MM-DD) desde un texto dd-mm-aaaa o un datetime; None si no se puede."""
+    if value is None:
+        return None
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d")
+    text = str(value).strip()
+    for fmt in ("%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
 def _parse_supuestos(wb) -> tuple[dict, pd.DataFrame]:
     ws = wb["Supuestos"]
     rows = []
@@ -144,6 +161,10 @@ def _parse_supuestos(wb) -> tuple[dict, pd.DataFrame]:
         return match.iloc[0]["Valor"] if not match.empty else None
 
     supuestos = {
+        # Fechas de corte declaradas por el propio archivo. `fecha_carga` (mtime del archivo
+        # recalculado) dice cuándo corrió el procesamiento, no a qué fecha corresponden los datos.
+        "fecha_corte_balance": _parse_fecha(find("Fecha de corte — Balance")),
+        "fecha_corte_flujo": _parse_fecha(find("Fecha de corte — Flujo")),
         "valor_uf": _num(find("Valor UF")),
         "tc_usd_clp": _num(find("Tipo de cambio USD")),
         "factor_tasacion": _num(find("Factor Tasación")) or 1.0,

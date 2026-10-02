@@ -8,6 +8,7 @@ import { CapitalRequirementCard } from "@/components/dashboard/CapitalRequiremen
 import { InvestmentFirepowerCard } from "@/components/dashboard/InvestmentFirepowerCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { PortfolioAlertCard } from "@/components/dashboard/PortfolioAlertCard";
+import { ValuationQualityCard } from "@/components/dashboard/ValuationQualityCard";
 import { ResumenFilters } from "@/components/dashboard/FilterBar";
 import { PageHeader, SectionTitle } from "@/components/navegacion/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,9 @@ import {
   calculateTopExposures,
   netWorthSeries,
   returnsByClass,
+  forwardMonths,
   trailingMonths,
+  valuationQualityBreakdown,
 } from "@/lib/calculos";
 import { formatCLP, formatOr, formatPct } from "@/lib/formatters";
 
@@ -45,10 +48,18 @@ export default function ResumenPage() {
   const alerts = calculatePortfolioAlerts(db);
   const top = calculateTopExposures(db, 5);
   const returns = returnsByClass(db);
+  const quality = valuationQualityBreakdown(db);
   // Sin cierre anterior no hay variación: se muestra "s/d" en vez de un 0,0% que parecería
   // un año plano. Lo mismo con el flujo, cuando la fuente solo trae proyección.
   const ytdReturn = current.changePct ?? null;
   const hasHistory = ltm.months.some((m) => m.income !== 0 || m.expenses !== 0);
+  // Si la fuente solo trae proyección (un presupuesto hacia adelante), se muestra eso, rotulado
+  // como proyectado, en vez de un histórico en cero.
+  const fwd = forwardMonths(db.asOf, 12);
+  const projected12 = calculateCashFlow(db, fwd.from, fwd.to, false);
+  const showProjection = !hasHistory && projected12.months.some((m) => m.income !== 0 || m.expenses !== 0);
+  const flow = hasHistory ? ltm : showProjection ? projected12 : null;
+  const flowLabel = hasHistory ? "Últimos 12 meses" : "Próximos 12 meses · proyectado";
 
   const holdings = db.entities
     .filter((e) => e.entityType === "HOLDING")
@@ -69,9 +80,9 @@ export default function ResumenPage() {
         <MetricCard label="Patrimonio Neto" value={formatCLP(nw.netWorth)} delta={current.changePct} hint="vs. cierre anterior" />
         <MetricCard label="Liquidez Disponible" value={formatCLP(liq.grossLiquidity)} hint="Caja + líquidos + líneas" />
         <MetricCard
-          label="Flujo Últimos 12 Meses"
-          value={hasHistory ? formatCLP(ltm.net) : "s/d"}
-          hint={hasHistory ? `Ingresos ${formatCLP(ltm.income)}` : "Sin meses cerrados en la fuente"}
+          label={hasHistory ? "Flujo Últimos 12 Meses" : "Flujo Proyectado 12 Meses"}
+          value={flow ? formatCLP(flow.net) : "s/d"}
+          hint={flow ? `Ingresos ${formatCLP(flow.income)}${hasHistory ? "" : " · sin meses cerrados"}` : "Sin flujo en la fuente"}
         />
         <MetricCard
           label="Retorno YTD"
@@ -137,33 +148,45 @@ export default function ResumenPage() {
         </div>
       </div>
 
+      <div className="mt-4">
+        <ValuationQualityCard breakdown={quality} />
+      </div>
+
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <div>
               <CardTitle>Flujo de Caja del Family Office</CardTitle>
-              <p className="mt-1 text-[13px] text-muted">Últimos 12 meses</p>
+              <p className="mt-1 text-[13px] text-muted">{flowLabel}</p>
             </div>
             <Link href="/flujo-de-caja" className="flex items-center gap-1 text-[12px] text-muted hover:text-foreground">
               Ver detalle <ArrowUpRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 grid grid-cols-3 gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted">Ingresos</p>
-                <p className="tnum text-[16px] font-semibold text-foreground">{formatCLP(ltm.income)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted">Egresos</p>
-                <p className="tnum text-[16px] font-semibold text-foreground">{formatCLP(ltm.expenses)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted">Flujo Neto</p>
-                <p className="tnum text-[16px] font-semibold text-positive">{formatCLP(ltm.net, { sign: true })}</p>
-              </div>
-            </div>
-            <CashFlowChart data={ltm.months} height={220} />
+            {flow ? (
+              <>
+                <div className="mb-4 grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-muted">Ingresos</p>
+                    <p className="tnum text-[16px] font-semibold text-foreground">{formatCLP(flow.income)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-muted">Egresos</p>
+                    <p className="tnum text-[16px] font-semibold text-foreground">{formatCLP(flow.expenses)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-muted">Flujo Neto</p>
+                    <p className={`tnum text-[16px] font-semibold ${flow.net >= 0 ? "text-positive" : "text-negative"}`}>
+                      {formatCLP(flow.net, { sign: true })}
+                    </p>
+                  </div>
+                </div>
+                <CashFlowChart data={flow.months} height={220} />
+              </>
+            ) : (
+              <p className="py-14 text-center text-[13px] text-muted">La fuente no trae flujo de caja, ni histórico ni proyectado.</p>
+            )}
           </CardContent>
         </Card>
 

@@ -113,13 +113,27 @@ export interface AssetBase {
   /** Participación directa de la entidad dueña sobre el activo (0–1). */
   ownershipPercentage: number;
   valuationMethod: string;
-  lastValuationDate: string;
+  /**
+   * Qué tan sólido es el valor. Es distinto del método: el método dice cómo se calculó,
+   * la calidad dice cuánto se puede confiar en el número.
+   * - TASADO: tasación comercial o valor de mercado directo.
+   * - CONTABLE: patrimonio contable informado (puede diferir del valor económico).
+   * - SALDO: saldo reportado por la institución (cuentas, instrumentos).
+   * - PROXY: estimado a partir de un indicador indirecto, p. ej. avalúo fiscal × factor.
+   * - SIN_DATO: no hay base de valorización; el valor cargado es cero o placeholder.
+   */
+  valuationQuality?: ValuationQuality;
+  /** Opcional: no siempre se conoce la fecha de la tasación, y la de carga no la reemplaza. */
+  lastValuationDate?: string;
   liquid: boolean;
 }
 
+export type ValuationQuality = "TASADO" | "CONTABLE" | "SALDO" | "PROXY" | "SIN_DATO";
+
 export interface RealEstateAsset extends AssetBase {
   assetClass: "INMOBILIARIO";
-  realEstateType: RealEstateType;
+  /** Opcional: la fuente real trae un tipo libre (Departamento, Casa, Bodega…) en `subAssetClass`. */
+  realEstateType?: RealEstateType;
   location: string;
   city: string;
   /** Operacionales: opcionales porque el Excel real solo trae valorización. */
@@ -211,8 +225,11 @@ export interface Loan {
   amortization: AmortizationType;
   /** Plazo de amortización del cuadro de pagos (años). BULLET = solo intereses. */
   amortizationYears: number;
-  maturityDate: string;
-  originationDate: string;
+  /** Opcional: una deuda morosa puede no tener un vencimiento contractual informado. */
+  maturityDate?: string;
+  originationDate?: string;
+  /** Deuda exigible en mora. Es distinto de "vence pronto": ya venció, sea cual sea la fecha. */
+  delinquent?: boolean;
   /** Servicio de deuda anual (intereses + amortización), CLP. */
   annualDebtService: number;
 }
@@ -445,10 +462,31 @@ export interface AllocationTarget {
   target: number; // 0–1
 }
 
+/**
+ * Flujo de arriendo según el flujo de caja, que registra conceptos y no propiedades.
+ * El vínculo con los inmuebles es una inferencia y declara su estado:
+ * - CONFIRMADO: validado por el responsable de los datos.
+ * - PROPUESTO: inferido por nombre; falta confirmar.
+ * - SIN_IDENTIFICAR: el concepto no calza con ninguna propiedad cargada.
+ */
+export interface RentStream {
+  id: string;
+  concept: string;
+  /** Arriendo de los próximos 12 meses desde la fecha de corte, CLP. */
+  annualRent: number;
+  assetIds: string[];
+  status: "CONFIRMADO" | "PROPUESTO" | "SIN_IDENTIFICAR";
+  note?: string | null;
+}
+
 /** Qué trae y qué no trae la fuente de datos, para que un módulo vacío se explique solo. */
 export interface DataCoverage {
   source: string;
   loadedAt: string;
+  /** Fecha de corte del balance, declarada por el propio archivo (YYYY-MM-DD). */
+  balanceAsOf?: string | null;
+  /** Fecha de corte del flujo de caja, declarada por el propio archivo (YYYY-MM-DD). */
+  cashflowAsOf?: string | null;
   gaps: Array<{ module: string; field: string; detail: string }>;
   excelTotals?: { totalActivos: number; totalPasivos: number; patrimonioNeto: number };
   /**
@@ -482,5 +520,7 @@ export interface Database {
   /** Fecha "hoy" del sistema para que los cálculos sean deterministas. */
   asOf: string;
   /** Presente cuando los datos vienen de una fuente real con campos faltantes. */
+  /** Arriendos por concepto del flujo de caja, vinculados a propiedades. Opcional. */
+  rentStreams?: RentStream[];
   dataCoverage?: DataCoverage;
 }

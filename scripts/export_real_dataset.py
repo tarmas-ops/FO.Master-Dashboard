@@ -18,6 +18,7 @@ import math
 import re
 import sys
 import unicodedata
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -131,8 +132,79 @@ class EntityRegistry:
         return eid
 
 
+RENT_MAPPING_PATH = Path(__file__).resolve().parent / "rent_mapping.json"
+
+
+def _add_months(iso: str, months: int) -> str:
+    y, m, d = (int(x) for x in iso.split("-"))
+    total = (y * 12 + (m - 1)) + months
+    return date(total // 12, total % 12 + 1, min(d, 28)).isoformat()
+
+
+def _rent_streams(transactions: list[dict], assets: list[dict], as_of: str, gaps: list[dict]) -> list[dict]:
+    """Arriendo anual (próximos 12 meses desde la fecha de corte) por concepto, con las
+    propiedades a las que se vincula y el estado de ese vínculo."""
+    mapping = json.loads(RENT_MAPPING_PATH.read_text(encoding="utf-8"))["streams"]
+    horizon = _add_months(as_of, 12)
+    window = [t for t in transactions if as_of < t["date"] <= horizon and t["type"] == "INGRESO"]
+    real_estate = [a for a in assets if a["assetClass"] == "INMOBILIARIO"]
+    streams = []
+    claimed: set[str] = set()
+    for i, entry in enumerate(mapping):
+        concept = entry["concept"].upper()
+        matched = [t for t in window if concept in t["description"].upper()]
+        if not matched:
+            continue
+        asset_ids = [
+            a["id"] for a in real_estate if any(m.lower() in a["name"].lower() for m in entry["match"])
+        ]
+        claimed.update(t["id"] for t in matched)
+        streams.append(
+            {
+                "id": f"rent-{i}",
+                "concept": entry["concept"],
+                "annualRent": round(sum(t["amount"] for t in matched)),
+                "assetIds": asset_ids,
+                "status": entry["status"],
+                "note": entry.get("note"),
+            }
+        )
+    # Cualquier arriendo del flujo que el mapeo no cubra se informa en vez de perderse.
+    leftovers = {}
+    for t in window:
+        if t["category"] == "ARRIENDOS" and t["id"] not in claimed:
+            leftovers[t["description"]] = leftovers.get(t["description"], 0) + t["amount"]
+    for description, amount in leftovers.items():
+        streams.append(
+            {
+                "id": f"rent-extra-{slug(description)[:24]}",
+                "concept": description,
+                "annualRent": round(amount),
+                "assetIds": [],
+                "status": "SIN_IDENTIFICAR",
+                "note": "Concepto de arriendo del flujo sin vínculo en scripts/rent_mapping.json.",
+            }
+        )
+    unidentified = [s for s in streams if s["status"] == "SIN_IDENTIFICAR"]
+    if unidentified:
+        total = sum(s["annualRent"] for s in unidentified)
+        names = ", ".join(f"{s['concept']} (${s['annualRent'] / 1e6:,.1f} MM)" for s in unidentified)
+        gaps.append(
+            {
+                "module": "Flujo de caja",
+                "field": "Arriendos sin propiedad identificada",
+                "detail": f"${total / 1e6:,.1f} MM/año de arriendo no calza con ninguna propiedad cargada: {names}. O faltan propiedades en Bienes_Raices, o llevan otro nombre.",
+            }
+        )
+    return streams
+
+
 def build() -> dict:
     d = load_fo_data()
+    # Fecha a la que corresponden los datos: la declara el Excel. La de procesamiento
+    # (`fecha_carga`) solo se usa de respaldo y se deja constancia en las brechas.
+    corte_balance = d.supuestos.get("fecha_corte_balance")
+    as_of = corte_balance or d.fecha_carga[:10]
     reg = EntityRegistry()
     assets: list[dict] = []
     gaps: list[dict] = []
@@ -142,9 +214,11 @@ def build() -> dict:
 
     # ---------------- Bienes Raíces ---------------- #
     br = d.bienes_raices
+    sin_valor: list[str] = []
     for _, row in br.iterrows():
         value = num(row["Valor Balance (CLP)"])
         if value is None:
+            sin_valor.append(clean(row["Dirección"]) or f"Propiedad {row['ID']}")
             continue
         name = clean(row["Dirección"]) or f"Propiedad {row['ID']}"
         entity_id = reg.ensure(row["Titular"] or "Sin titular identificado", "SPV")
@@ -154,7 +228,6 @@ def build() -> dict:
                 "name": name,
                 "assetClass": "INMOBILIARIO",
                 "subAssetClass": clean(row["Tipo"]) or "Inmueble",
-                "realEstateType": "RETAIL",
                 "sector": "INMOBILIARIO",
                 "country": "CL",
                 "currency": "CLP",
@@ -162,7 +235,9 @@ def build() -> dict:
                 "ownerEntityId": entity_id,
                 "ownershipPercentage": num(row["% Participación"]) or 1,
                 "valuationMethod": clean(row["Fuente valor usado"]) or "Sin método declarado",
-                "lastValuationDate": d.fecha_carga[:10],
+                # Tasación comercial = TASADO; "avalúo fiscal × factor" es un proxy. La fecha de
+                # la tasación no está en el Excel, así que no se informa una.
+                "valuationQuality": "TASADO" if num(row["Tasación Comercial (CLP)"]) is not None else "PROXY",
                 "liquid": False,
                 "location": ", ".join(x for x in [clean(row["Dirección"]), clean(row["Comuna"])] if x) or "Sin dirección",
                 "city": clean(row["Comuna"]) or "Sin comuna",
@@ -176,6 +251,15 @@ def build() -> dict:
                 },
             }
         )
+    if sin_valor:
+        gap("Inmobiliario", "Propiedades sin valor", f"No se cargaron por no tener tasación ni avalúo: {', '.join(sin_valor)}.")
+    proxies = sum(1 for a in assets if a["assetClass"] == "INMOBILIARIO" and a.get("valuationQuality") == "PROXY")
+    if proxies:
+        gap("Inmobiliario", "Tasaciones comerciales", f"{proxies} de {sum(1 for a in assets if a['assetClass'] == 'INMOBILIARIO')} propiedades se valoran con avalúo fiscal × factor, un proxy; el valor real puede diferir.")
+    if not corte_balance:
+        gap("General", "Fecha de corte", "El Excel no declara fecha de corte del balance; se usó la fecha de procesamiento, que no es la fecha de los datos.")
+    if not d.supuestos.get("tc_usd_clp"):
+        gap("General", "Tipo de cambio USD/CLP", "La hoja Supuestos lo marca como PENDIENTE; sin él no se puede medir la exposición en dólares.")
     gap("Inmobiliario", "NOI, arriendos, ocupación, WALE, arrendatarios", "El Excel no registra datos operacionales de las propiedades, solo su valorización.")
     gap("Inmobiliario", "Costo de adquisición", "No hay costo histórico por propiedad, por lo que no se puede calcular ganancia no realizada ni IRR.")
     gap("Deuda", "Créditos hipotecarios por activo", "El único pasivo del Excel son patentes comerciales morosas; no hay deuda asociada a los inmuebles, así que no hay LTV ni DSCR.")
@@ -205,7 +289,7 @@ def build() -> dict:
                 "ownerEntityId": entity_id,
                 "ownershipPercentage": pct if pct is not None else 1,
                 "valuationMethod": "% participación × patrimonio contable" if equity else "Sin EEFF cargados",
-                "lastValuationDate": d.fecha_carga[:10],
+                "valuationQuality": "CONTABLE" if patrimonio is not None else "SIN_DATO",
                 "liquid": False,
                 "history": [],
                 "sourceNotes": {
@@ -244,7 +328,8 @@ def build() -> dict:
                 "ownerEntityId": entity_id,
                 "ownershipPercentage": 1,
                 "valuationMethod": "Saldo declarado",
-                "lastValuationDate": d.fecha_carga[:10],
+                "lastValuationDate": as_of,
+                "valuationQuality": "SALDO",
                 "liquid": True,
                 "bank": clean(row["Titular/Entidad"]) or "Sin identificar",
                 "accountType": perimetro,
@@ -273,7 +358,8 @@ def build() -> dict:
                 "ownerEntityId": entity_id,
                 "ownershipPercentage": 1,
                 "valuationMethod": "Valor declarado",
-                "lastValuationDate": d.fecha_carga[:10],
+                "lastValuationDate": as_of,
+                "valuationQuality": "SALDO",
                 "liquid": True,
                 "ticker": slug(name)[:12].upper(),
                 "issuer": clean(row["Titular/Entidad"]) or "Sin identificar",
@@ -302,7 +388,8 @@ def build() -> dict:
                 "ownerEntityId": ROOT_ENTITY_ID,
                 "ownershipPercentage": 1,
                 "valuationMethod": "Valor nominal",
-                "lastValuationDate": d.fecha_carga[:10],
+                "lastValuationDate": as_of,
+                "valuationQuality": "SALDO",
                 "liquid": False,
             }
         )
@@ -324,7 +411,8 @@ def build() -> dict:
                 "ownerEntityId": ROOT_ENTITY_ID,
                 "ownershipPercentage": 1,
                 "valuationMethod": "Valor declarado",
-                "lastValuationDate": d.fecha_carga[:10],
+                "lastValuationDate": as_of,
+                "valuationQuality": "SALDO",
                 "liquid": False,
             }
         )
@@ -350,8 +438,9 @@ def build() -> dict:
                 "rateType": "FIJA",
                 "amortization": "BULLET",
                 "amortizationYears": 0,
-                "originationDate": d.fecha_carga[:10],
-                "maturityDate": d.fecha_carga[:10],
+                # El Excel registra la patente como morosa, no su fecha de vencimiento: no se
+                # inventa una. `delinquent` es lo que realmente sabemos.
+                "delinquent": True,
                 "annualDebtService": balance,
             }
         )
@@ -378,7 +467,7 @@ def build() -> dict:
                 "amount": abs(amount),
                 "currency": "CLP",
                 "description": description,
-                "realized": month.isoformat()[:10] <= d.fecha_carga[:10],
+                "realized": month.isoformat()[:10] <= as_of,
             }
         )
 
@@ -416,6 +505,36 @@ def build() -> dict:
 
     # ---------------- Ensamblado ---------------- #
     balance = d.balance
+
+    # ---------------- Flujos de arriendo ---------------- #
+    # El flujo de caja trae arriendos por concepto, no por propiedad. Se vinculan por nombre
+    # con un mapeo editable (scripts/rent_mapping.json) y cada vínculo declara su estado:
+    # nada se reparte entre propiedades por la fuerza.
+    rent_streams = _rent_streams(transactions, assets, as_of, gaps)
+
+    # Partidas del flujo que no se comportan como caja operativa. No se excluyen en silencio
+    # (eso sería decidir por el cliente): se informan con su monto para que se revisen.
+    horizon = _add_months(as_of, 12)
+    in_window = [t for t in transactions if as_of < t["date"] <= horizon]
+    inflacion = sum(t["amount"] for t in in_window if "EFECTO INFLACION" in t["description"].upper().replace("Ó", "O"))
+    if inflacion:
+        gaps.append(
+            {
+                "module": "Flujo de caja",
+                "field": "'Efecto Inflación' contado como ingreso",
+                "detail": f"${inflacion / 1e6:,.1f} MM en los próximos 12 meses figuran como ingreso, pero un ajuste por inflación no es caja. Infla los ingresos y el flujo neto proyectado.",
+            }
+        )
+    valle = sum(t["amount"] for t in in_window if "VALLE CENTRO" in t["description"].upper())
+    if valle:
+        gaps.append(
+            {
+                "module": "Flujo de caja",
+                "field": "Cuotas de 'Valle Centro' como dividendos",
+                "detail": f"${valle / 1e6:,.1f} MM/año de un pago en 110 cuotas se clasifican como dividendos; parece una cuenta por cobrar, no un retiro de empresa.",
+            }
+        )
+
     net_worth_history = []
     for _, row in fc.resumen_anual.iterrows():
         horizonte = clean(row["Horizonte"]) or ""
@@ -455,16 +574,19 @@ def build() -> dict:
         "decisions": [],
         "deals": [],
         "netWorthHistory": net_worth_history,
+        "rentStreams": rent_streams,
         "fx": {
             "UF": supuestos.get("valor_uf") or 0,
             "USD": supuestos.get("tc_usd_clp") or 0,
-            "asOf": d.fecha_carga[:10],
+            "asOf": as_of,
         },
         "allocationTargets": [],
-        "asOf": d.fecha_carga[:10],
+        "asOf": as_of,
         "dataCoverage": {
             "source": "FO_Master_Consolidado.xlsx",
             "loadedAt": d.fecha_carga,
+            "balanceAsOf": corte_balance,
+            "cashflowAsOf": d.supuestos.get("fecha_corte_flujo"),
             "gaps": gaps,
             "excelTotals": {
                 "totalActivos": balance.total_activos,

@@ -128,7 +128,7 @@ export default function ConfiguracionPage() {
           <CardHeader>
             <div>
               <CardTitle>Origen de los Datos</CardTitle>
-              {coverage ? <p className="mt-1 text-[13px] text-muted">{coverage.source} · cargado {coverage.loadedAt}</p> : null}
+              {coverage ? <p className="mt-1 text-[13px] text-muted">{coverage.source}</p> : null}
             </div>
             <Badge variant={activeDataset === "real" ? "positive" : "outline"}>{activeDataset === "real" ? "Datos reales" : "Datos de demostración"}</Badge>
           </CardHeader>
@@ -140,6 +140,11 @@ export default function ConfiguracionPage() {
                   <code className="rounded bg-hover px-1 py-0.5 text-[12px]">scripts/export_real_dataset.py</code>. Solo se carga lo que el
                   archivo contiene: los campos que no existen quedan en blanco, nunca en cero.
                 </p>
+                <div className="mt-4">
+                  <StatRow label="Corte del balance" value={coverage.balanceAsOf ? formatDate(coverage.balanceAsOf) : "No declarado"} />
+                  <StatRow label="Corte del flujo de caja" value={coverage.cashflowAsOf ? formatDate(coverage.cashflowAsOf) : "No declarado"} />
+                  <StatRow label="Procesado" value={coverage.loadedAt} muted />
+                </div>
                 {coverage.excelTotals ? (
                   <div className="mt-4">
                     <StatRow label="Activos según el Excel" value={formatCLP(coverage.excelTotals.totalActivos)} />

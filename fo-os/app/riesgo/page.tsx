@@ -32,31 +32,54 @@ export default function RiesgoPage() {
   const inmobiliario = exposure.find((e) => e.key === "INMOBILIARIO");
   const chile = calculateGeographicExposure(db).find((e) => e.key === "CL");
 
-  const riskCategories = [
+  // Cada categoría tiene tres estados, no dos: un semáforo verde afirma "evaluado y bien".
+  // Cuando la fuente no trae lo necesario para evaluar, el estado es "sin dato", no verde.
+  const usdShare = calculateCurrencyExposure(db).find((e) => e.key === "USD")?.share ?? 0;
+  const fxInformed = db.fx.USD > 0 || db.assets.some((a) => a.currency !== "CLP");
+  const delinquentLoans = db.loans.filter((l) => l.delinquent);
+  const datedLoans = db.loans.filter((l) => !l.delinquent && l.maturityDate);
+  const yearsOut = (n: number) => new Date(new Date(db.asOf).setFullYear(new Date(db.asOf).getFullYear() + n));
+  const within = (l: (typeof db.loans)[number], n: number) => new Date(l.maturityDate as string) <= yearsOut(n);
+  // La cobertura de liquidez se calcula contra compromisos (capital calls, vencimientos, capex,
+  // impuestos). Sin ellos no hay "usos" que cubrir y la métrica no se puede evaluar.
+  const hasCommitments = db.commitments.length > 0;
+  const hasTenants = db.assets.some((a) => a.assetClass === "INMOBILIARIO" && a.tenants.length > 0);
+
+  type RiskStatus = "ok" | "breach" | "nodata";
+  const riskCategories: Array<{ name: string; detail: string; status: RiskStatus }> = [
     {
       name: "Riesgo de Concentración",
       detail: `La mayor posición individual representa ${formatPct(largestAsset?.shareOfAssets ?? 0)} de los activos y el inmobiliario ${formatPct(inmobiliario?.share ?? 0)}.`,
-      breached: (largestAsset?.shareOfAssets ?? 0) > ALERT_THRESHOLDS.maxSingleAssetShare,
+      status: (largestAsset?.shareOfAssets ?? 0) > ALERT_THRESHOLDS.maxSingleAssetShare ? "breach" : "ok",
     },
     {
       name: "Riesgo de Liquidez",
-      detail: `Cobertura de compromisos a 12 meses de ${coverage12.coverage === null ? "—" : formatMultiple(coverage12.coverage, 1)} sobre usos por ${formatCLP(coverage12.uses)}.`,
-      breached: coverage12.coverage !== null && coverage12.coverage < 1.5,
+      detail: hasCommitments
+        ? `Cobertura de compromisos a 12 meses de ${coverage12.coverage === null ? "—" : formatMultiple(coverage12.coverage, 1)} sobre usos por ${formatCLP(coverage12.uses)}.`
+        : "No hay compromisos de capital (capital calls, vencimientos, CAPEX, impuestos) cargados, así que no se puede medir la cobertura de usos.",
+      status: !hasCommitments ? "nodata" : coverage12.coverage !== null && coverage12.coverage < 1.5 ? "breach" : "ok",
     },
     {
       name: "Riesgo de Refinanciamiento",
-      detail: `${db.loans.filter((l) => new Date(l.maturityDate) <= new Date(new Date(db.asOf).setFullYear(new Date(db.asOf).getFullYear() + 2))).length} crédito(s) vencen dentro de 24 meses.`,
-      breached: db.loans.some((l) => new Date(l.maturityDate) <= new Date(new Date(db.asOf).setFullYear(new Date(db.asOf).getFullYear() + 1))),
+      detail:
+        delinquentLoans.length > 0
+          ? `${delinquentLoans.length} deuda(s) en mora, sin fecha de vencimiento informada. ${datedLoans.filter((l) => within(l, 2)).length} crédito(s) con vencimiento dentro de 24 meses.`
+          : `${datedLoans.filter((l) => within(l, 2)).length} crédito(s) vencen dentro de 24 meses.`,
+      status: delinquentLoans.length > 0 || datedLoans.some((l) => within(l, 1)) ? "breach" : db.loans.length === 0 ? "nodata" : "ok",
     },
     {
       name: "Riesgo Cambiario",
-      detail: `Exposición en USD de ${formatPct(calculateCurrencyExposure(db).find((e) => e.key === "USD")?.share ?? 0)} de los activos, sin cobertura contratada.`,
-      breached: (calculateCurrencyExposure(db).find((e) => e.key === "USD")?.share ?? 0) > 0.3,
+      detail: fxInformed
+        ? `Exposición en USD de ${formatPct(usdShare)} de los activos.`
+        : "La fuente registra todos los activos en CLP y no informa tipo de cambio USD, así que no distingue la exposición cambiaria real.",
+      status: !fxInformed ? "nodata" : usdShare > 0.3 ? "breach" : "ok",
     },
     {
       name: "Riesgo de Contraparte",
-      detail: `Los arrendatarios ancla y los gestores de fondos concentran la mayor dependencia; sin exposición a una sola contraparte sobre el 10% del patrimonio.`,
-      breached: false,
+      detail: hasTenants
+        ? "Calculado sobre la renta de los arrendatarios registrados."
+        : "No hay arrendatarios ni gestores de fondos cargados, así que no se puede medir la dependencia de una sola contraparte.",
+      status: hasTenants ? "ok" : "nodata",
     },
   ];
 
@@ -126,9 +149,16 @@ export default function RiesgoPage() {
             <ul className="divide-y divide-border">
               {riskCategories.map((r) => (
                 <li key={r.name} className="flex items-start gap-3 px-5 py-3.5">
-                  <span className={`mt-1.5 size-2 shrink-0 rounded-full ${r.breached ? "bg-negative" : "bg-positive"}`} />
+                  <span
+                    className={`mt-1.5 size-2 shrink-0 rounded-full ${
+                      r.status === "breach" ? "bg-negative" : r.status === "ok" ? "bg-positive" : "bg-muted-2"
+                    }`}
+                  />
                   <div>
-                    <p className="text-[13px] font-medium text-foreground">{r.name}</p>
+                    <p className="text-[13px] font-medium text-foreground">
+                      {r.name}
+                      {r.status === "nodata" ? <span className="ml-2 text-[11px] font-normal text-muted-2">sin dato</span> : null}
+                    </p>
                     <p className="mt-0.5 text-[13px] leading-relaxed text-muted">{r.detail}</p>
                   </div>
                 </li>

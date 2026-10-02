@@ -24,11 +24,16 @@ export default function DeudaPage() {
   const annualService = db.loans.reduce((a, l) => a + l.annualDebtService, 0);
   const alerts = calculatePortfolioAlerts(db).filter((a) => ["LTV", "DSCR", "VENCIMIENTO_DEUDA", "TASA_VARIABLE"].includes(a.kind));
 
+  // Solo entran al calendario los créditos con vencimiento informado. Una deuda morosa ya
+  // venció y no tiene fecha: ubicarla en un año sería inventarla.
   const maturityByYear = new Map<string, number>();
+  const undated = db.loans.filter((l) => !l.maturityDate);
   for (const l of db.loans) {
+    if (!l.maturityDate) continue;
     const y = l.maturityDate.slice(0, 4);
     maturityByYear.set(y, (maturityByYear.get(y) ?? 0) + l.balance);
   }
+  const undatedBalance = undated.reduce((a, l) => a + l.balance, 0);
   const startYear = Number(db.asOf.slice(0, 4));
   const calendar = Array.from({ length: 10 }, (_, i) => {
     const y = String(startYear + i);
@@ -55,7 +60,7 @@ export default function DeudaPage() {
     const dscr = reRow && reRow.noi !== null ? calculateDSCR(reRow.noi, l.annualDebtService) : null;
     return {
       id: l.id,
-      values: [l.name, asset?.name ?? "—", l.bank, l.balance, l.currency, l.rate, l.amortization, l.maturityDate, ltv, dscr],
+      values: [l.name, asset?.name ?? "—", l.bank, l.balance, l.currency, l.rate, l.amortization, l.delinquent ? "Moroso" : (l.maturityDate ?? null), ltv, dscr],
       cells: [
         <span key="n" className="font-medium">{l.name}</span>,
         <span key="a" className="text-muted">{asset?.name ?? "—"}</span>,
@@ -66,7 +71,11 @@ export default function DeudaPage() {
           {l.rate > 0 ? `${formatPct(l.rate)} ${l.rateType === "VARIABLE" ? "var." : "fija"}` : "s/d"}
         </span>,
         <span key="am" className="text-muted">{l.amortization === "BULLET" ? "Bullet" : l.amortization === "MENSUAL" ? "Mensual" : "Trimestral"}</span>,
-        <span key="v" className="text-muted">{formatDate(l.maturityDate)}</span>,
+        l.delinquent ? (
+          <span key="v" className="text-negative">Moroso</span>
+        ) : (
+          <span key="v" className="text-muted">{l.maturityDate ? formatDate(l.maturityDate) : "s/d"}</span>
+        ),
         ltv === null ? "—" : <ThresholdBadge key="ltv" ok={ltv <= ALERT_THRESHOLDS.maxLTV}>{formatPct(ltv)}</ThresholdBadge>,
         dscr === null ? "—" : <ThresholdBadge key="dscr" ok={dscr >= ALERT_THRESHOLDS.minDSCR}>{formatMultiple(dscr)}</ThresholdBadge>,
       ],
@@ -106,7 +115,9 @@ export default function DeudaPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Calendario de Vencimientos</CardTitle>
-            <span className="text-[12px] text-muted">Próximos 10 años</span>
+            <span className="text-[12px] text-muted">
+              Próximos 10 años{undated.length > 0 ? ` · excluye ${formatCLP(undatedBalance)} sin fecha (${undated.length})` : ""}
+            </span>
           </CardHeader>
           <CardContent>
             <SimpleBarChart data={calendar} valueLabel="Saldo que vence" height={240} />

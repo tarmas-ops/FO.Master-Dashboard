@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ActualVsPlanCard } from "@/components/inversiones/ActualVsPlanCard";
 import { DocumentList } from "@/components/inversiones/DocumentList";
 import { InvestmentThesisCard } from "@/components/inversiones/InvestmentThesisCard";
-import { ThresholdBadge } from "@/components/inversiones/StatusBadge";
+import { ThresholdBadge, ValuationBadge } from "@/components/inversiones/StatusBadge";
 import { MetricCard, StatRow } from "@/components/dashboard/MetricCard";
 import { SimpleBarChart } from "@/components/graficos/SimpleBarChart";
 import { PageHeader } from "@/components/navegacion/PageHeader";
@@ -75,7 +75,7 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Valor Actual" value={formatCLP(asset.currentValue)} hint={`Tasación ${formatDate(asset.lastValuationDate)}`} />
+        <MetricCard label="Valor Actual" value={formatCLP(asset.currentValue)} hint={asset.lastValuationDate ? `Tasación ${formatDate(asset.lastValuationDate)}` : "Fecha de tasación no informada"} />
         <MetricCard label="Equity Actual" value={formatCLP(m.equity)} hint={`Atribuible ${formatCLP(m.attributableEquity)}`} />
         <MetricCard
           label="NOI Anual"
@@ -103,6 +103,10 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
             <StatRow label="Equity Actual" value={formatCLP(m.equity)} strong />
             <StatRow label="Ganancia No Realizada" value={formatOr(m.unrealizedGain, (v) => formatCLP(v, { sign: true }))} />
             <StatRow label="Método de Valorización" value={asset.valuationMethod} muted />
+            <div className="mt-2 flex items-center justify-between gap-3 py-1.5">
+              <span className="text-[13px] text-muted">Calidad del dato</span>
+              <ValuationBadge quality={asset.valuationQuality} />
+            </div>
           </CardContent>
         </Card>
 
@@ -171,7 +175,7 @@ export default async function ActivoInmobiliarioPage({ params }: PageProps<"/inm
                       <TableCell className="text-right">{formatPct(l.rate)}</TableCell>
                       <TableCell className="text-muted">{l.rateType === "FIJA" ? "Fija" : "Variable"}</TableCell>
                       <TableCell className="text-muted">{l.amortization === "BULLET" ? "Bullet" : l.amortization === "MENSUAL" ? "Mensual" : "Trimestral"}</TableCell>
-                      <TableCell className="text-muted">{formatDate(l.maturityDate)}</TableCell>
+                      <TableCell className="text-muted">{l.delinquent ? "Moroso" : l.maturityDate ? formatDate(l.maturityDate) : "s/d"}</TableCell>
                       <TableCell className="text-right">{formatCLP(l.annualDebtService)}</TableCell>
                       <TableCell className="text-right">{formatPct(l.balance / asset.currentValue)}</TableCell>
                       <TableCell className="text-right">{m.dscr === null ? "—" : formatMultiple(m.dscr)}</TableCell>

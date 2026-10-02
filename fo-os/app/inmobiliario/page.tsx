@@ -1,9 +1,10 @@
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { PageHeader } from "@/components/navegacion/PageHeader";
 import { DataTable, type TableColumn } from "@/components/tablas/DataTable";
-import { ThresholdBadge } from "@/components/inversiones/StatusBadge";
+import { RentStreamsCard } from "@/components/inversiones/RentStreamsCard";
+import { ThresholdBadge, ValuationBadge } from "@/components/inversiones/StatusBadge";
 import { db } from "@/data";
-import { ALERT_THRESHOLDS, realEstatePortfolio } from "@/lib/calculos";
+import { ALERT_THRESHOLDS, allAssetEquities, realEstatePortfolio } from "@/lib/calculos";
 import { formatCLP, formatMultiple, formatNumber, formatOr, formatPct } from "@/lib/formatters";
 
 export const metadata = { title: "Inmobiliario · Family Office OS" };
@@ -17,8 +18,21 @@ const TYPE_LABELS: Record<string, string> = {
   RETAIL: "Retail",
 };
 
+/** El tipo real que trae la fuente (Departamento, Casa, Bodega…) manda sobre la categoría genérica. */
+function typeLabel(asset: { subAssetClass: string; realEstateType?: string }): string {
+  if (asset.realEstateType) return TYPE_LABELS[asset.realEstateType] ?? asset.realEstateType;
+  return asset.subAssetClass;
+}
+
 export default function InmobiliarioPage() {
   const p = realEstatePortfolio(db);
+  // Valor económico de las propiedades vinculadas a cada flujo de arriendo.
+  const economicById = new Map(allAssetEquities(db).map((e) => [e.asset.id, e.economicValue]));
+  const rentRows = (db.rentStreams ?? []).map((stream) => ({
+    stream,
+    linkedCount: stream.assetIds.length,
+    linkedValue: stream.assetIds.reduce((a, id) => a + (economicById.get(id) ?? 0), 0),
+  }));
 
   // La superficie solo se suma sobre los activos que la registran; si ninguno lo hace,
   // el subtítulo omite el dato en vez de mostrar 0 m².
@@ -34,6 +48,7 @@ export default function InmobiliarioPage() {
     { key: "type", header: "Tipo" },
     { key: "city", header: "Ubicación" },
     { key: "value", header: "Valor", align: "right" },
+    { key: "quality", header: "Valoración", tooltip: "Qué tan sólido es el valor: tasado, o estimado a partir de un proxy como el avalúo fiscal." },
     { key: "debt", header: "Deuda", align: "right" },
     { key: "equity", header: "Equity", align: "right" },
     { key: "noi", header: "NOI", align: "right", tooltip: "Net Operating Income: ingresos operacionales menos gastos operacionales del activo." },
@@ -49,9 +64,10 @@ export default function InmobiliarioPage() {
     href: `/inmobiliario/${r.asset.id}`,
     values: [
       r.asset.name,
-      TYPE_LABELS[r.asset.realEstateType] ?? r.asset.realEstateType,
+      typeLabel(r.asset),
       r.asset.city,
       r.value,
+      r.asset.valuationQuality ?? null,
       r.debt,
       r.equity,
       r.noi,
@@ -63,9 +79,10 @@ export default function InmobiliarioPage() {
     ],
     cells: [
       <span key="n" className="font-medium">{r.asset.name}</span>,
-      <span key="t" className="text-muted">{TYPE_LABELS[r.asset.realEstateType]}</span>,
+      <span key="t" className="text-muted">{typeLabel(r.asset)}</span>,
       <span key="c" className="text-muted">{r.asset.city}</span>,
       formatCLP(r.value),
+      <ValuationBadge key="q" quality={r.asset.valuationQuality} />,
       r.debt > 0 ? formatCLP(r.debt) : "—",
       formatCLP(r.equity),
       formatOr(r.noi, formatCLP, "—"),
@@ -98,6 +115,12 @@ export default function InmobiliarioPage() {
       <div className="mt-6">
         <DataTable rows={rows} columns={columns} searchPlaceholder="Buscar activo, tipo o ubicación…" initialSort={{ key: "value", dir: "desc" }} />
       </div>
+
+      {rentRows.length > 0 ? (
+        <div className="mt-4">
+          <RentStreamsCard rows={rentRows} />
+        </div>
+      ) : null}
     </>
   );
 }

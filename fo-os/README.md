@@ -121,6 +121,25 @@ Datos**, junto a una conciliación línea por línea contra el balance del propi
 Los módulos sin fuente (mercados privados, pipeline, documentos, histórico de flujo) muestran
 un estado vacío que explica qué falta cargar, en vez de un dashboard con ceros.
 
+**Fechas.** `asOf` es la fecha de corte que declara el propio Excel (hoja Supuestos), no la
+fecha en que corrió el script: el balance y el flujo de caja tienen cortes distintos y ambos se
+muestran en Configuración. Si el Excel no declara fecha, se usa la de procesamiento y queda
+registrado como brecha.
+
+**Calidad de la valorización.** Cada activo declara qué tan sólido es su valor: `TASADO`,
+`CONTABLE`, `SALDO`, `PROXY` (p. ej. avalúo fiscal × factor, que es una instrucción declarada
+en la hoja Supuestos) o `SIN_DATO`. El Resumen desglosa el patrimonio por esa calidad, porque
+un total se ve igual de preciso venga de tasaciones o de estimaciones.
+
+**Arriendos.** El flujo de caja registra arriendos por concepto, no por propiedad, y el Excel no
+los relaciona. `scripts/rent_mapping.json` vincula cada concepto con un grupo de propiedades y
+declara el estado del vínculo (`PROPUESTO`, `SIN_IDENTIFICAR`, `CONFIRMADO`). El yield bruto se
+calcula por grupo, nunca repartiendo montos entre propiedades individuales. Para confirmar un
+vínculo, cambiar su `status` y volver a correr el export.
+
+**Semáforos de riesgo.** Tienen tres estados: en regla, en alerta y *sin dato*. Verde afirma
+"evaluado y bien"; cuando la fuente no trae lo necesario para evaluar, el estado es gris.
+
 ### Base demo
 
 6 activos inmobiliarios, 4 empresas privadas, 3 fondos de private equity, 10 posiciones
@@ -155,6 +174,12 @@ La cookie es `HttpOnly`, `SameSite=Lax`, `Secure` en producción, y dura 12 hora
 Sin `APP_PASSWORD` configurada el portón queda desactivado y la aplicación es accesible sin
 credenciales: cómodo en local, inaceptable en un despliegue público. La pantalla de acceso lo
 dice explícitamente cuando ocurre.
+
+Los intentos fallidos de login se limitan por IP (5 cada 15 minutos, con un retraso fijo por
+fallo). El contador vive en la memoria de cada instancia, así que en un entorno serverless frena
+a un atacante casual pero no a uno que reparta intentos entre instancias: la defensa que de
+verdad escala es una contraseña larga. Un límite global requeriría un almacén compartido
+(Upstash o Vercel KV), que esta versión no incorpora.
 
 Es una contraseña compartida, no un sistema de identidades: no distingue quién entra ni deja
 registro por persona. Para eso hace falta un proveedor de identidad, que la arquitectura admite

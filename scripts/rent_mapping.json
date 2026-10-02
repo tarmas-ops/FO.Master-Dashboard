@@ -1,0 +1,65 @@
+{
+  "_comment": "Vínculo entre los conceptos de arriendo del Flujo_Caja y las propiedades de Bienes_Raices. El Excel no los relaciona, así que cada vínculo es una inferencia por nombre y queda marcado: PROPUESTO (inferido, falta confirmar), SIN_IDENTIFICAR (el concepto no calza con ninguna propiedad cargada) o CONFIRMADO (cambiar a mano una vez validado). Editar este archivo y volver a correr scripts/export_real_dataset.py.",
+  "streams": [
+    {
+      "concept": "JJ 3 PRIETO",
+      "match": ["JJ Prieto 4260"],
+      "status": "PROPUESTO",
+      "note": "3 unidades en JJ Prieto 4260 (208, 308, 408)."
+    },
+    {
+      "concept": "PAGOS MEME ARRIENDO A BANCO ITAU",
+      "match": ["Local Av. La dehesa"],
+      "status": "PROPUESTO",
+      "note": "El local pertenece a Inversiones Meme Ltda, que da nombre al concepto."
+    },
+    {
+      "concept": "OFICINA LAS CONDES ESTORIL",
+      "match": ["Las Condes 10465"],
+      "status": "PROPUESTO",
+      "note": "Única oficina en Las Condes del listado; la calle Estoril no figura en la dirección."
+    },
+    {
+      "concept": "BODEGAS Y ESTACIONAMIENTOS",
+      "match": ["Mario Kreutzberger 1520, Bod"],
+      "status": "PROPUESTO",
+      "note": "'MK 3B' sugiere 3 bodegas en Mario Kreutzberger; el concepto también menciona JJP, que no se pudo separar."
+    },
+    {
+      "concept": "ARRIENDOS MK 9",
+      "match": ["Mario Kreutzberger 1520, Unidad"],
+      "status": "PROPUESTO",
+      "note": "El concepto dice 9 y hay 10 unidades en el listado: el yield del grupo puede estar subestimado."
+    },
+    {
+      "concept": "WARRENSMID 15 Y LOCALES",
+      "match": ["Warren Smith 15", "Colón 5923", "Colón 5911", "La Capitanía 1014"],
+      "status": "PROPUESTO",
+      "note": "Warren Smith 15 y los 3 locales comerciales; los locales pertenecen a la sociedad conyugal ('PERSONAL')."
+    },
+    {
+      "concept": "PROPIEDADES CON GERMAN POR PRAGA",
+      "match": ["Apoquindo 6498", "Apoquindo 5701", "Warren Smith 32", "Rosario Norte 33", "Rosario Norte 41"],
+      "status": "PROPUESTO",
+      "note": "Propiedades de Praga S.A. excluyendo Warren Smith 15, que ya figura en otro concepto."
+    },
+    {
+      "concept": "ARRIENDOS BOULEBARD",
+      "match": [],
+      "status": "SIN_IDENTIFICAR",
+      "note": "Ninguna propiedad cargada se llama Boulevard. Es el mayor flujo de arriendo: o falta una propiedad en Bienes_Raices, o tiene otro nombre."
+    },
+    {
+      "concept": "ARRIENDOS CONSTANTINO 6",
+      "match": [],
+      "status": "SIN_IDENTIFICAR",
+      "note": "No hay ninguna propiedad Constantino en Bienes_Raices."
+    },
+    {
+      "concept": "FIDEL OTEIZA 1841",
+      "match": [],
+      "status": "SIN_IDENTIFICAR",
+      "note": "Figura como ingreso en el flujo (departamento 41 E) pero no está en Bienes_Raices."
+    }
+  ]
+}

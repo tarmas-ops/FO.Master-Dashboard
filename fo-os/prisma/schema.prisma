@@ -240,8 +240,9 @@ model Loan {
   rate              Decimal  @db.Decimal(7, 6)
   rateType          String
   amortization      String
-  originationDate   DateTime
-  maturityDate      DateTime
+  originationDate   DateTime?
+  maturityDate      DateTime?
+  delinquent        Boolean   @default(false)
   annualDebtService Decimal  @db.Decimal(20, 2)
   transactions      Transaction[]
   documents         Document[]

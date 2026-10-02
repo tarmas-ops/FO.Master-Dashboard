@@ -52,7 +52,7 @@ export const valuations: Valuation[] = realEstate.flatMap((asset) => {
     return {
       id: `val-${asset.id}-${year}`,
       assetId: asset.id,
-      date: year === 2026 ? asset.lastValuationDate : `${year}-12-31`,
+      date: year === 2026 ? (asset.lastValuationDate ?? asOf) : `${year}-12-31`,
       value: Math.round(value),
       method: asset.valuationMethod,
       noi: Math.round(noi),

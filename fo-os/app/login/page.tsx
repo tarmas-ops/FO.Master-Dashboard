@@ -7,6 +7,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
   const next = typeof params.next === "string" ? params.next : "/resumen";
   const failed = params.error === "1";
+  const lockedMinutes = params.error === "locked" ? Math.max(Number(params.wait) || 1, 1) : 0;
   const gateDisabled = configuredPassword() === undefined;
 
   return (
@@ -40,6 +41,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               className="mt-1.5 w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-foreground/30"
             />
             {failed ? <p className="mt-2 text-[12px] text-negative">Contraseña incorrecta.</p> : null}
+            {lockedMinutes > 0 ? (
+              <p className="mt-2 text-[12px] text-negative">
+                Demasiados intentos fallidos. Espera {lockedMinutes} {lockedMinutes === 1 ? "minuto" : "minutos"} antes de reintentar.
+              </p>
+            ) : null}
             <button
               type="submit"
               className="mt-4 w-full rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
