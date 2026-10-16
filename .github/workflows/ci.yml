@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, "claude/family-office-dashboard-aice2r"]
+
+# Un solo CI por rama a la vez: un push nuevo cancela el anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fo-os:
+    name: Family Office OS (tipos, lint, pruebas, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fo-os
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fo-os/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      - run: npm run typecheck
+      - run: npm run lint
+      # Lógica de publicación del Apps Script, con servicios de Google simulados.
+      - run: npm run check-appsscript
+      # El build ejecuta antes el sincronizador; sin SHEETS_ENDPOINT/SHEETS_TOKEN no hace nada
+      # y usa el dataset incluido, así que el CI nunca toca la planilla real.
+      - run: npm run build
+
+  python:
+    name: Streamlit y exportadores (sintaxis)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m compileall -q src scripts app.py pages

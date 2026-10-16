@@ -10,3 +10,9 @@ data/snapshots.csv
 
 # Simulación de la respuesta de Google Sheets: contiene el patrimonio real
 fo-os/.sheets-fixture/
+
+# Variables de entorno y credenciales: nunca se versionan
+.env
+.env.*
+*.pem
+.vercel/

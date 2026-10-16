@@ -1,4 +1,19 @@
-# Family Office — Panel Consolidado
+# Family Office
+
+Este repositorio tiene **dos aplicaciones** sobre los mismos datos de un grupo familiar:
+
+| | Qué es | Dónde |
+| --- | --- | --- |
+| **Family Office OS** | Sistema operativo del family office (Next.js). Es el producto principal. | [`fo-os/`](fo-os/README.md) |
+| **Panel consolidado** | Dashboard original en Streamlit, sobre el Excel maestro. | Esta carpeta (ver abajo) |
+
+**Si vas a trabajar en el proyecto**, empieza por [`CONTRIBUTING.md`](CONTRIBUTING.md) (cómo trabajar
+juntos) y [`CLAUDE.md`](CLAUDE.md) (contexto y reglas del proyecto, que también leen las sesiones de
+Claude). Los datos son reales y sensibles: ahí están las reglas para manejarlos.
+
+---
+
+# Panel Consolidado (Streamlit)
 
 Dashboard interactivo (Streamlit + Plotly) sobre `FO_Master_Consolidado.xlsx`: patrimonio
 consolidado, inversiones, bienes raíces, empresas vinculadas, flujo de caja y KPIs de un
