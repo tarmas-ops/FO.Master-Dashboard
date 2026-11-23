@@ -1,22 +1,24 @@
-"""Verifica la plantilla generada contra el Excel maestro y el dataset del dashboard.
+"""Verifica la plantilla generada contra el Excel maestro y el dashboard.
 
-1) Recalcula la plantilla con LibreOffice (las fórmulas no traen valores guardados).
-2) Revisa que ninguna celda tenga error de fórmula.
-3) Concilia: patrimonio por clase, total de activos/pasivos y flujo mensual contra la fuente.
-4) Prueba el paso de FORECAST a REAL: carga movimientos de prueba en una copia, mueve
-   `Ultimo_Mes_Cerrado` y comprueba que el mes cambia de fuente y que Desviaciones reacciona.
+La plantilla no tiene fórmulas, así que no hace falta recalcularla: se lee tal cual y se aplica la
+lógica de referencia de scripts/template_engine.py (la que debe replicar el dashboard).
+
+  1) Patrimonio por clase, activos, deudas y neto contra el dataset del dashboard.
+  2) Flujo de 60 meses contra Flujo_Caja del Excel: caja exacta mes a mes, ajustes no caja,
+     y totales por categoría (la agrupación del presupuesto no cambia los totales).
+  3) Paso de FORECAST a REAL: meses cerrados leen Flujo_Real, el resto el plan.
+  4) Tipos de supuesto: frecuencias, reajuste IPC y fijo, UF, USD, rango de fechas.
+  5) Estructura de la plantilla: pestañas esperadas, sin fórmulas, sin celdas con error.
 
 Uso:  python3 scripts/check_template.py [plantilla.xlsx]
-Sale con código 1 si algo no cuadra. No escribe nada en el repositorio.
+Sale con código 1 si algo no cuadra. No escribe nada.
 """
 
 from __future__ import annotations
 
+import copy
 import json
-import shutil
-import subprocess
 import sys
-import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -26,18 +28,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import template_engine as te  # noqa: E402
 from export_real_dataset import build as build_dataset  # noqa: E402
 from src.data_loader import load_fo_data  # noqa: E402
 
 DEFAULT = ROOT / "data" / "plantilla" / "FO_Plantilla.xlsx"
+EXPECTED_SHEETS = ["Leeme", "Estructura", "Patrimonio", "Flujo_Plan", "Flujo_Real", "Documentos", "Historial"]
 FAILS: list[str] = []
-
-
-def recalc(src: Path, outdir: Path) -> Path:
-    outdir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["soffice", "--headless", "--calc", "--convert-to", "xlsx", "--outdir", str(outdir), str(src)],
-                   check=True, capture_output=True, timeout=600)
-    return outdir / src.name
 
 
 def check(ok: bool, label: str, detail: str = "") -> None:
@@ -48,154 +45,110 @@ def check(ok: bool, label: str, detail: str = "") -> None:
 
 def main() -> int:
     src = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT
-    work = Path(tempfile.mkdtemp(prefix="plantilla_"))
-    rec = recalc(src, work / "a")
-    wb = openpyxl.load_workbook(rec, data_only=True)
-
-    print("1) Errores de fórmula")
-    errores = []
-    for ws in wb:
-        for row in ws.iter_rows():
-            for c in row:
-                if isinstance(c.value, str) and (c.value.startswith("#") or c.value.startswith("Err:")):
-                    errores.append(f"{ws.title}!{c.coordinate} {c.value}")
-    check(not errores, "ninguna celda con error", ", ".join(errores[:6]))
-
+    meta = json.loads((src.parent / "_meta.json").read_text(encoding="utf-8"))
+    t = te.read_template(src)
     d = load_fo_data()
     ds = build_dataset()
-    B = wb["Balance"]
+
+    print("1) Estructura de la plantilla")
+    check(t["sheetnames"] == EXPECTED_SHEETS, "7 pestañas esperadas", ", ".join(t["sheetnames"]))
+    wb = openpyxl.load_workbook(src)
+    formulas = [f"{ws.title}!{c.coordinate}" for ws in wb for row in ws.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=")]
+    check(not formulas, "ninguna fórmula (solo entradas)", ", ".join(formulas[:4]))
 
     print("2) Patrimonio: plantilla vs dataset del dashboard")
-    clases = {"Caja": ("CAJA",), "Inversiones financieras": ("MERCADOS_PUBLICOS",), "Bienes raíces": ("INMOBILIARIO",),
-              "Empresas": ("EMPRESAS_PRIVADAS",), "Otros activos": ("OTROS",)}
-    for r in range(5, 10):
-        nombre = B.cell(r, 1).value
-        esperado = sum(a["currentValue"] * a["ownershipPercentage"] for a in ds["assets"] if a["assetClass"] in clases[nombre])
-        obtenido = B.cell(r, 2).value or 0
-        check(abs(obtenido - esperado) < 1, f"{nombre}", f"dif ${obtenido - esperado:,.2f}")
+    b = te.balance(t)
+    clases = {"Caja": "CAJA", "Inversiones financieras": "MERCADOS_PUBLICOS", "Bienes raíces": "INMOBILIARIO", "Empresas": "EMPRESAS_PRIVADAS", "Otros activos": "OTROS"}
+    for nombre, cls in clases.items():
+        esperado = sum(a["currentValue"] * a["ownershipPercentage"] for a in ds["assets"] if a["assetClass"] == cls)
+        check(abs(b["por_clase"].get(nombre, 0) - esperado) < 1, nombre, f"dif ${b['por_clase'].get(nombre, 0) - esperado:,.2f}")
     activos = sum(a["currentValue"] * a["ownershipPercentage"] for a in ds["assets"])
-    pasivos = sum(l["balance"] for l in ds["loans"])
-    check(abs(B["B10"].value - activos) < 1, "total activos", f"dif ${B['B10'].value - activos:,.2f}")
-    check(abs(B["B11"].value - pasivos) < 1, "total pasivos", f"dif ${B['B11'].value - pasivos:,.2f}")
-    check(abs(B["B12"].value - (activos - pasivos)) < 1, "patrimonio neto = activos − pasivos")
-    cont = d.total_activos_contingentes
-    check(abs(B["B15"].value - cont) < 1, "activos contingentes (memo)", f"{B['B15'].value:,.0f} vs {cont:,.0f}")
-    check(abs(B["B16"].value - abs(d.otras_partidas.provisiones_subtotal_memo)) < 1, "provisiones (memo)")
-    check(abs(B["B17"].value - (activos - pasivos + cont)) < 1, "patrimonio ajustado por contingencias = neto + contingentes")
-    check(abs(B["B18"].value - (activos - pasivos - abs(d.otras_partidas.provisiones_subtotal_memo))) < 1, "patrimonio prudente = neto − provisiones")
+    deuda = sum(l["balance"] for l in ds["loans"])
+    check(abs(b["activos"] - activos) < 1, "total activos", f"dif ${b['activos'] - activos:,.2f}")
+    check(abs(b["deuda"] - deuda) < 1, "total deudas que suman")
+    check(abs(b["neto"] - (activos - deuda)) < 1, "patrimonio neto = activos − deudas")
+    check(abs(b["contingente"] - d.total_activos_contingentes) < 1, "activos contingentes (memo)")
+    check(abs(b["provisiones"] - abs(d.otras_partidas.provisiones_subtotal_memo)) < 1, "provisiones (memo)")
+    check(abs(b["prudente"] - (activos - deuda - b["provisiones"])) < 1, "patrimonio prudente = neto − provisiones")
+    check(len(b["sin_valor"]) == sum(1 for a in ds["assets"] if a["assetClass"] == "EMPRESAS_PRIVADAS" and a["currentValue"] == 0)
+          + sum(1 for a in ds["assets"] if a["assetClass"] == "MERCADOS_PUBLICOS" and a["currentValue"] == 0 and a.get("subAssetClass") == "Instrumento financiero") + 1,
+          "ítems sin valor = 32 sociedades + 5 instrumentos + La cabaña", str(len(b["sin_valor"])))
+    check(all(p["Valor 100% (CLP)"] is None or p["Valor 100% (CLP)"] > 0 or p["Clase"] in ("Caja", "Inversiones financieras") for p in t["patrimonio"]),
+          "los ceros son solo saldos de cuentas que el Excel declara en 0")
 
-    print("3) Flujo mensual: plantilla vs Flujo_Caja del Excel (60 meses)")
-    F = wb["Flujo_Mensual"]
-    max_dif = 0.0
-    max_ing = 0.0
-    max_egr = 0.0
-    for k in range(60):
-        col = 5 + k
-        neto = F.cell(10, col).value
-        esp = float(d.flujo_caja.saldo_mensual.iloc[k])
-        max_dif = max(max_dif, abs(neto - esp))
-        ing = F.cell(6, col).value + sum(
-            (F.cell(r, col).value or 0) for r in range(17, 17 + 150)
-            if F.cell(r, 3).value == "INGRESO" and F.cell(r, 4).value == "NO")
-        egr = F.cell(7, col).value + sum(
-            (F.cell(r, col).value or 0) for r in range(17, 17 + 150)
-            if F.cell(r, 3).value == "EGRESO" and F.cell(r, 4).value == "NO")
-        max_ing = max(max_ing, abs(ing - float(d.flujo_caja.total_ingresos.iloc[k])))
-        max_egr = max(max_egr, abs(egr - float(d.flujo_caja.total_egresos.iloc[k])))
-    check(max_dif < 5, "neto mensual (60 meses)", f"máx. diferencia ${max_dif:,.2f}")
-    check(max_ing < 5, "total ingresos mensual", f"máx. diferencia ${max_ing:,.2f}")
-    check(max_egr < 5, "total egresos mensual", f"máx. diferencia ${max_egr:,.2f}")
+    print("3) Flujo de 60 meses: plantilla vs Flujo_Caja del Excel")
+    flujo = te.monthly_flow(t)
+    tot = te.totales(flujo)
+    orig = meta["originales"]
+    n = 60
+    ing_caja = [sum(o["serie"][k] for o in orig if o["tipo"] == "Ingreso" and "EFECTO INFLACION" not in o["partida"].upper()) for k in range(n)]
+    egr_caja = [sum(o["serie"][k] for o in orig if o["tipo"] == "Egreso" and "EFECTO INFLACION" not in o["partida"].upper()) for k in range(n)]
+    check(max(abs(a - c) for a, c in zip(tot["ingresos"], ing_caja)) < 1, "ingresos de caja, mes a mes", f"máx ${max(abs(a - c) for a, c in zip(tot['ingresos'], ing_caja)):,.2f}")
+    check(max(abs(a - c) for a, c in zip(tot["egresos"], egr_caja)) < 1, "egresos de caja, mes a mes (con el presupuesto agrupado)", f"máx ${max(abs(a - c) for a, c in zip(tot['egresos'], egr_caja)):,.2f}")
+    sm = d.flujo_caja.saldo_mensual.tolist()
+    # El Excel original incluye "Efecto Inflación" en el neto: se migra exacto y se separa como "no caja".
+    dif = [a - float(e) for a, e in zip(tot["neto_original"], sm)]
+    check(max(abs(x) for x in dif) < 1, "neto como en el Excel original (caja + ajustes), mes a mes", f"máx ${max(abs(x) for x in dif):,.2f}")
+    aj = [sum(o["serie"][k] * (1 if o["tipo"] == "Ingreso" else -1) for o in orig if "EFECTO INFLACION" in o["partida"].upper()) for k in range(n)]
+    check(max(abs(a - c) for a, c in zip(tot["ajustes"], aj)) < 1, "ajustes que no son caja, mes a mes")
+    por_cat_plan, por_cat_orig = {}, {}
+    for (tipo, _), s in flujo["partidas"].items():
+        if s["es_caja"]:
+            por_cat_plan[(tipo, s["categoria"])] = por_cat_plan.get((tipo, s["categoria"]), 0.0) + sum(v for v in s["serie"] if v is not None)
+    for o in orig:
+        if "EFECTO INFLACION" in o["partida"].upper():
+            continue
+        por_cat_orig[(o["tipo"], o["categoria"])] = por_cat_orig.get((o["tipo"], o["categoria"]), 0.0) + sum(o["serie"])
+    check(all(abs(por_cat_plan.get(k, 0) - v) < 1 for k, v in por_cat_orig.items()), "totales por categoría (60 meses) iguales al Excel", f"{len(por_cat_orig)} categorías")
+    check(len({(r['Tipo'], r['Partida']) for r in t['plan']}) < meta["n_original_conceptos"], "menos partidas que los 71 conceptos originales",
+          f"{len({(r['Tipo'], r['Partida']) for r in t['plan']})} partidas, {len(t['plan'])} filas")
 
-    print("4) Controles")
-    C = wb["Controles"]
-    for r in range(4, 30):
-        if C.cell(r, 1).value:
-            print(f"     {C.cell(r, 3).value:8} {C.cell(r, 2).value!s:>5}  {C.cell(r, 1).value}")
+    print("4) Paso de FORECAST a REAL")
+    t2 = copy.deepcopy(t)
+    ms = flujo["months"]
+    t2["params"]["Ultimo_Mes_Cerrado"] = ms[1]  # cierra agosto y septiembre
+    p_real = next(r for r in t["plan"] if r["Tipo"] == "Ingreso" and "MK 9" in r["Partida"])
+    t2["real"] = [dict(Fecha=date(ms[0].year, ms[0].month, 10), Partida=p_real["Partida"], Tipo="Ingreso", Monto=2_000_000, Estado="PAGADO"),
+                  dict(Fecha=date(ms[1].year, ms[1].month, 10), Partida=p_real["Partida"], Tipo="Ingreso", Monto=1_800_000, Estado="DEVENGADO"),
+                  dict(Fecha=date(ms[1].year, ms[1].month, 12), Partida="Gasto no planificado", Tipo="Egreso", Monto=300_000, Estado="PAGADO", **{"Categoría": "Otros gastos"})]
+    f2 = te.monthly_flow(t2)
+    s = f2["partidas"][("Ingreso", p_real["Partida"])]
+    check(f2["estado"][:3] == ["REAL", "REAL", "FORECAST"], "agosto y septiembre REAL, octubre FORECAST")
+    check(s["serie"][0] == 2_000_000 and s["serie"][1] == 1_800_000, "los meses cerrados leen Flujo_Real")
+    check(s["serie"][2] == flujo["partidas"][("Ingreso", p_real["Partida"])]["serie"][2], "octubre mantiene el forecast")
+    otro = next(k for k, v in f2["partidas"].items() if k[0] == "Ingreso" and k != ("Ingreso", p_real["Partida"]) and v["plan"][0])
+    check(f2["partidas"][otro]["serie"][0] is None, "partida sin movimiento real en mes cerrado: sin dato (no cero)", str(otro[1])[:30])
+    check(("Egreso", "Gasto no planificado") in f2["partidas"], "una partida real que no estaba en el plan entra igual")
+    dv = {x["partida"]: x for x in te.desviaciones(t2, f2)}
+    x = dv[p_real["Partida"]]
+    check(abs(x["real"] - 3_800_000) < 1 and abs(x["promedio_real"] - 1_900_000) < 1, "desviaciones: real acumulado y promedio mensual", f"{x['senal']}")
+    check(dv["Gasto no planificado"]["senal"] == "REVISAR", "una partida sin plan se marca REVISAR")
 
-    print("5) Paso de FORECAST a REAL (copia de prueba)")
-    wt = openpyxl.load_workbook(src)  # fórmulas intactas
-    P = wt["Parametros"]
-    fila = next(r for r in range(1, 40) if P.cell(r, 1).value == "Último mes cerrado (REAL)")
-    meses = [F.cell(4, 5 + k).value for k in range(3)]  # ago, sep, oct
-    cierre_original = P.cell(fila, 2).value
-    P.cell(fila, 2).value = date(meses[1].year, meses[1].month, 1)  # cerrar hasta septiembre
-    M = wt["Movimientos"]
-    # Concepto de prueba: el primer ingreso mensual con monto fijo
-    cat = json.loads((src.parent / "_meta.json").read_text(encoding="utf-8"))["catalogo"]
-    cid = next(k for k, v in cat.items() if "ARRIENDOS MK 9" in v["nombre"].upper())
-    fila_cat = int(cid[2:]) + 1
-    M.cell(2, 1).value = date(meses[0].year, meses[0].month, 10)
-    M.cell(2, 2).value = cid
-    M.cell(2, 4).value = 2_000_000
-    M.cell(2, 5).value = "PAGADO"
-    M.cell(3, 1).value = date(meses[1].year, meses[1].month, 10)
-    M.cell(3, 2).value = cid
-    M.cell(3, 4).value = 1_800_000
-    M.cell(3, 5).value = "DEVENGADO"
-    prueba = work / "prueba.xlsx"
-    wt.save(prueba)
-    wr = openpyxl.load_workbook(recalc(prueba, work / "b"), data_only=True)
-    F2, D2 = wr["Flujo_Mensual"], wr["Desviaciones"]
-    fila_concepto = 17 + (int(cid[2:]) - 1)
-    check(F2.cell(2, 5).value == "REAL" and F2.cell(2, 6).value == "REAL" and F2.cell(2, 7).value == "FORECAST", "agosto y septiembre pasan a REAL, octubre sigue FORECAST")
-    check(F2.cell(fila_concepto, 5).value == 2_000_000, "agosto lee el movimiento real", str(F2.cell(fila_concepto, 5).value))
-    check(F2.cell(fila_concepto, 6).value == 1_800_000, "septiembre lee el movimiento real", str(F2.cell(fila_concepto, 6).value))
-    sin_mov = next(r for r in range(17, 17 + 150) if F2.cell(r, 4).value == "SI" and F2.cell(r, 3).value == "INGRESO" and r != fila_concepto and F.cell(r, 5).value)
-    check(F2.cell(sin_mov, 5).value in (None, ""), "un concepto sin movimiento real queda vacío (no cero)", repr(F2.cell(sin_mov, 5).value))
-    check(F2.cell(fila_concepto, 7).value == F.cell(fila_concepto, 7).value, "octubre mantiene el forecast")
-    fila_d = 5 + (int(cid[2:]) - 1)
-    check(D2["C2"].value == 2, "Desviaciones cuenta 2 meses cerrados", str(D2["C2"].value))
-    check(D2.cell(fila_d, 5).value == 3_800_000, "real acumulado = 3.800.000", str(D2.cell(fila_d, 5).value))
-    check(isinstance(D2.cell(fila_d, 10).value, str) and D2.cell(fila_d, 10).value != "", "Desviaciones emite una señal", str(D2.cell(fila_d, 10).value))
-    P.cell(fila, 2).value = cierre_original
+    print("5) Tipos de supuesto")
+    P = dict(t["params"])
+    P["USD_CLP"] = None
+    base = dict(Moneda="CLP", Reajuste="NINGUNO")
+    M = te.months_from(P["Mes_Inicio"])
+    ipc, uf = P["IPC_Anual"], P["UF_Hoy"]
+    e = lambda **k: te.expand_row({**base, **k}, M, P)  # noqa: E731
+    a = e(Monto=1_000_000, Frecuencia="MENSUAL", Reajuste="IPC", **{"Mes del reajuste": 1}, Desde=date(2026, 8, 1))
+    check(a[4] == 1_000_000 and abs(a[5] - 1_000_000 * (1 + ipc)) < .01 and abs(a[17] - 1_000_000 * (1 + ipc) ** 2) < .01, "IPC: reajuste cada enero")
+    a = e(Monto=12_000_000, Frecuencia="ANUAL", Reajuste="FIJO", **{"Mes de pago": 3, "% reajuste anual": 0.05, "Mes del reajuste": 3}, Desde=date(2027, 3, 1))
+    check([i for i, v in enumerate(a) if v] == [7, 19, 31, 43, 55] and abs(a[19] - 12_600_000) < .01, "ANUAL con reajuste fijo 5%: marzo de cada año")
+    check([i for i, v in enumerate(e(Monto=600_000, Frecuencia="TRIMESTRAL", **{"Mes de pago": 2}, Desde=date(2026, 8, 15))) if v][:4] == [0, 3, 6, 9], "TRIMESTRAL")
+    check([i for i, v in enumerate(e(Monto=700_000, Frecuencia="SEMESTRAL", **{"Mes de pago": 11}, Desde=date(2026, 8, 1))) if v][:3] == [3, 9, 15], "SEMESTRAL")
+    a = e(Monto=50, Moneda="UF", Frecuencia="MENSUAL", Desde=date(2026, 8, 1))
+    check(abs(a[0] - 50 * uf * (1 + ipc) ** (1 / 12)) < .01, "UF: 50 UF × UF proyectada", f"{a[0]:,.2f}")
+    check([i for i, v in enumerate(e(Monto=5_000_000, Frecuencia="UNICO", Desde=date(2026, 10, 1))) if v] == [2], "UNICO")
+    check([i for i, v in enumerate(e(Monto=100, Frecuencia="MENSUAL", Desde=date(2026, 8, 1), Hasta=date(2026, 10, 1))) if v] == [0, 1, 2], "Hasta: termina en octubre")
+    check(e(Monto=800, Moneda="USD", Frecuencia="MENSUAL", Desde=date(2026, 8, 1))[0] is None, "USD sin dólar cargado: sin dato, no cero")
+    P["USD_CLP"] = 900
+    check(te.expand_row({**base, "Monto": 800, "Moneda": "USD", "Frecuencia": "MENSUAL", "Desde": date(2026, 8, 1)}, M, P)[0] == 720_000, "USD con dólar: 800 × 900")
 
-    print("6) Tipos de supuesto: frecuencia, reajuste, UF, USD, rango de fechas")
-    wt = openpyxl.load_workbook(src)
-    C = wt["Catalogo_Conceptos"]
-    n_cat = sum(1 for r in range(2, 150) if C.cell(r, 1).value)
-    fila_c = n_cat + 2
-    C.cell(fila_c, 1).value, C.cell(fila_c, 2).value, C.cell(fila_c, 3).value, C.cell(fila_c, 4).value = "C-TEST", "PRUEBA", "INGRESO", "SI"
-    S = wt["Supuestos_Forecast"]
-    n_sup = sum(1 for r in range(2, 460) if S.cell(r, 1).value)
-    casos = [  # monto, moneda, freq, mes, reaj, pj, mj, desde, hasta
-        (1_000_000, "CLP", "MENSUAL", None, "IPC", None, 1, date(2026, 8, 1), None),
-        (12_000_000, "CLP", "ANUAL", 3, "FIJO", 0.05, 3, date(2027, 3, 1), None),
-        (600_000, "CLP", "TRIMESTRAL", 2, "NINGUNO", None, None, date(2026, 8, 15), None),
-        (50, "UF", "MENSUAL", None, "NINGUNO", None, None, date(2026, 8, 1), None),
-        (5_000_000, "CLP", "UNICO", None, "NINGUNO", None, None, date(2026, 10, 1), None),
-        (100, "CLP", "MENSUAL", None, "NINGUNO", None, None, date(2026, 8, 1), date(2026, 10, 1)),
-        (800, "USD", "MENSUAL", None, "NINGUNO", None, None, date(2026, 8, 1), None),
-        (700_000, "CLP", "SEMESTRAL", 11, "NINGUNO", None, None, date(2026, 8, 1), None),
-    ]
-    for k, (monto, mon, fr, mes, rj, pj, mj, de, ha) in enumerate(casos):
-        r = 2 + n_sup + k
-        for col, v in enumerate([f"SF-T{k}", "C-TEST", monto, mon, fr, mes, rj, pj, mj, de, ha], 1):
-            S.cell(r, col).value = v
-    prueba2 = work / "prueba2.xlsx"
-    wt.save(prueba2)
-    wr = openpyxl.load_workbook(recalc(prueba2, work / "c"), data_only=True)
-    FC = wr["Forecast"]
-    uf, ipc = d.supuestos["valor_uf"], d.supuestos["inflacion_anual"]
+    print("6) Completitud (lo que el dashboard avisaría)")
+    for label, cnt in te.completitud(t):
+        print(f"     {'OK     ' if cnt == 0 else 'REVISAR'} {cnt:>3}  {label}")
 
-    def val(caso, mes_idx):  # mes_idx 0 = ago-26
-        return FC.cell(5 + n_sup + caso, 13 + mes_idx).value
-
-    check(val(0, 0) == 1_000_000 and val(0, 4) == 1_000_000, "IPC: sin reajuste hasta diciembre")
-    check(abs(val(0, 5) - 1_000_000 * (1 + ipc)) < 0.01, "IPC: reajuste en enero (+3%)", str(val(0, 5)))
-    check(abs(val(0, 17) - 1_000_000 * (1 + ipc) ** 2) < 0.01, "IPC: segundo reajuste en enero siguiente")
-    check(val(1, 6) in (0, None) and val(1, 7) == 12_000_000, "ANUAL: paga solo en marzo, desde marzo-27", f"{val(1, 6)}, {val(1, 7)}")
-    check(abs(val(1, 19) - 12_600_000) < 0.01, "ANUAL con reajuste fijo 5%: marzo-28 = 12,6 MM", str(val(1, 19)))
-    pagos = [i for i in range(60) if (val(2, i) or 0) > 0]
-    check(pagos[:4] == [0, 3, 6, 9], "TRIMESTRAL: ago, nov, feb, may", str(pagos[:4]))
-    check(abs(val(3, 0) - 50 * uf * (1 + ipc) ** (1 / 12)) < 0.01, "UF: 50 UF × UF proyectada", f"{val(3, 0):,.2f}")
-    check([i for i in range(60) if (val(4, i) or 0) != 0] == [2], "UNICO: solo octubre-26")
-    check([i for i in range(60) if (val(5, i) or 0) != 0] == [0, 1, 2], "Hasta: termina en octubre-26")
-    check(val(6, 0) in ("", None), "USD sin dólar cargado: queda vacío, no cero", repr(val(6, 0)))
-    check([i for i in range(60) if (val(7, i) or 0) != 0][:3] == [3, 9, 15], "SEMESTRAL: noviembre y mayo", str([i for i in range(60) if (val(7, i) or 0) != 0][:3]))
-    ctl = {wr["Controles"].cell(r, 1).value: wr["Controles"].cell(r, 2).value for r in range(4, 30)}
-    check(ctl.get("Supuestos en USD y dólar sin cargar") == 1, "Controles avisa del supuesto en USD sin dólar")
-
-    shutil.rmtree(work, ignore_errors=True)
     print()
     if FAILS:
         print(f"FALLÓ: {len(FAILS)} verificación(es): {', '.join(FAILS)}")

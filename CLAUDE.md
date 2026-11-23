@@ -71,10 +71,11 @@ Python (raíz): `pip install -r requirements.txt` y LibreOffice con Calc (`apt-g
   (`check-parity`). Si cambias uno, cambia el otro.
 - `data/*.ts` base demo ficticia. `data/real/` base real y `rent_mapping.json`.
 - `integrations/google-sheets/` Apps Script y su guía de instalación.
-- Plantilla normalizada (raíz, `scripts/`): `build_template.py` la genera desde el Excel maestro en
-  `data/plantilla/` (ignorada por git: lleva datos reales) y `check_template.py` la concilia contra el
-  dashboard y prueba el paso de forecast a real. El lector de Sheets del OS aún lee el formato antiguo:
-  adaptarlo a esta plantilla es un cambio aparte (con su prueba de paridad).
+- Plantilla de datos (raíz, `scripts/`): libro de **solo entradas** (6 pestañas + Historial, sin fórmulas).
+  `build_template.py` la genera desde el Excel maestro en `data/plantilla/` (ignorada por git: lleva
+  datos reales), `template_engine.py` es la lógica de referencia (patrimonio, forecast, real vs plan) que
+  debe replicar `fo-os/lib/calculos`, y `check_template.py` la concilia contra el dashboard. El lector de
+  Sheets del OS aún lee el formato antiguo: adaptarlo es un cambio aparte, con su prueba de paridad.
 
 ## Trampas conocidas
 
