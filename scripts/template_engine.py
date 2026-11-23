@@ -7,8 +7,8 @@ forecast, real vs forecast) se define aquí, y es lo que debe replicar el dashbo
 Reglas:
   * Ausencia no es cero: un valor o un % vacío da `None`, nunca 0.
   * Un mes <= `Ultimo_Mes_Cerrado` es REAL: lee Flujo_Real; si una partida no tiene movimientos
-    ese mes, queda en `None` (no en 0). Los meses posteriores son FORECAST: salen de Flujo_Plan.
-  * Una fila de Flujo_Plan rige de `desde` a `hasta` (inclusive). Para cambiar un supuesto no se
+    ese mes, queda en `None` (no en 0). Los meses posteriores son FORECAST: salen de Supuestos (forecast).
+  * Una fila de Supuestos rige de `desde` a `hasta` (inclusive). Para cambiar un supuesto no se
     edita la fila: se le pone `hasta` y se agrega otra.
 """
 
@@ -46,15 +46,56 @@ def named_value(wb, name):
     return wb[sheet.strip("'")][cell.replace("$", "")].value
 
 
+ADJ_CAT = "Ajuste por inflación (no es caja)"
+FLOW_FIRST_COL = 5  # columna E: primer mes en Flujo_Plan / Flujo_Real
+
+
+def read_flow_matrix(ws, n_months: int = 60) -> dict:
+    """Flujo de caja en formato contable: una fila por partida (tipo en col. C), un mes por columna.
+
+    Devuelve las partidas con su serie (None = celda vacía) y las filas de totales por su rótulo.
+    Las filas «(nueva partida)» sin usar se ignoran. Para leer Flujo_Plan hay que haberlo calculado
+    antes (el archivo debe traer valores guardados).
+    """
+    months = [first_of_month(ws.cell(4, FLOW_FIRST_COL + k).value) for k in range(n_months)]
+    partidas, totales = [], {}
+    for row in ws.iter_rows(min_row=5, values_only=True):
+        a, b, c = row[0], row[1], row[2]
+        serie = [row[FLOW_FIRST_COL - 1 + k] for k in range(n_months)]
+        if a is None:
+            continue
+        if c in ("Ingreso", "Egreso"):
+            if str(a).startswith("(nueva partida)"):
+                continue
+            partidas.append(dict(partida=str(a), categoria=b, tipo=c, serie=[v if isinstance(v, (int, float)) else None for v in serie]))
+        else:
+            totales[str(a)] = [v if isinstance(v, (int, float)) else None for v in serie]
+    return dict(months=months, partidas=partidas, totales=totales)
+
+
+def real_rows(matrix: dict) -> list[dict]:
+    """Flujo_Real (matriz) → lista de movimientos para `monthly_flow`."""
+    out = []
+    for p in matrix["partidas"]:
+        for m, v in zip(matrix["months"], p["serie"]):
+            if v is not None:
+                out.append({"Fecha": m, "Partida": p["partida"], "Tipo": p["tipo"], "Monto": v, "Categoría": p["categoria"]})
+    return out
+
+
 def read_template(path: Path) -> dict:
+    """Lee la plantilla. Pasar el archivo con valores calculados (recalculado en Excel/LibreOffice)."""
     wb = openpyxl.load_workbook(path, data_only=True)
     params = {n: named_value(wb, n) for n in wb.defined_names}
+    real_m = read_flow_matrix(wb["Flujo_Real"])
     return dict(
         params=params,
         estructura=read_table(wb["Estructura"]),
         patrimonio=read_table(wb["Patrimonio"]),
-        plan=read_table(wb["Flujo_Plan"]),
-        real=read_table(wb["Flujo_Real"]),
+        plan=[r for r in read_table(wb["Supuestos"]) if r.get("Partida")],  # las columnas auxiliares traen valores en filas vacías
+        plan_matrix=read_flow_matrix(wb["Flujo_Plan"]),
+        real_matrix=real_m,
+        real=real_rows(real_m),
         documentos=read_table(wb["Documentos"]),
         historial=read_table(wb["Historial"]),
         sheetnames=wb.sheetnames,
@@ -119,7 +160,7 @@ def months_from(start, n: int = 60) -> list[date]:
 
 
 def expand_row(row: dict, months: list[date], params: dict) -> list:
-    """Serie mensual de una fila de Flujo_Plan. `None` = no se puede calcular (USD sin dólar)."""
+    """Serie mensual de una fila de Supuestos. `None` = no se puede calcular (USD sin dólar)."""
     monto, moneda = row.get("Monto"), row.get("Moneda") or "CLP"
     freq, desde = row.get("Frecuencia"), row.get("Desde")
     if monto is None or desde is None:
@@ -184,7 +225,7 @@ def monthly_flow(t: dict, n_months: int = 60) -> dict:
     partidas: dict[tuple, dict] = {}
     for r in t["plan"]:
         key = (r["Tipo"], r["Partida"])
-        slot = partidas.setdefault(key, dict(es_caja=(r.get("Es caja") or "SI") == "SI", categoria=r.get("Categoría"),
+        slot = partidas.setdefault(key, dict(es_caja=r.get("Categoría") != ADJ_CAT, categoria=r.get("Categoría"),
                                              plan=[0.0] * n_months, real=[None] * n_months))
         serie = expand_row(r, months, p)
         slot["plan"] = [_add(a, b) for a, b in zip(slot["plan"], serie)]
@@ -192,7 +233,7 @@ def monthly_flow(t: dict, n_months: int = 60) -> dict:
         if r.get("Monto") is None or r.get("Fecha") is None:
             continue
         key = (r["Tipo"], r["Partida"])
-        slot = partidas.setdefault(key, dict(es_caja=True, categoria=r.get("Categoría"), plan=[0.0] * n_months, real=[None] * n_months))
+        slot = partidas.setdefault(key, dict(es_caja=r.get("Categoría") != ADJ_CAT, categoria=r.get("Categoría"), plan=[0.0] * n_months, real=[None] * n_months))
         i = idx(first_of_month(r["Fecha"]))
         for k, m in enumerate(months):
             if idx(m) == i:
@@ -250,7 +291,7 @@ def completitud(t: dict) -> list[tuple[str, int]]:
         ("Ítems sin titular", sum(1 for i in pat if not i.get("Titular (ID)") and i["Clase"] != "Activo contingente")),
         ("Valores TASACION / EEFF sin documento", docs_req),
         ("Deudas hipotecarias sin saldo", sum(1 for i in pat if i["Clase"] == "Deuda – Hipotecaria" and i.get("Valor 100% (CLP)") is None)),
-        ("Filas de Flujo_Plan sin monto o sin «Desde»", sum(1 for r in t["plan"] if r.get("Monto") is None or r.get("Desde") is None)),
+        ("Filas de Supuestos sin monto o sin «Desde»", sum(1 for r in t["plan"] if r.get("Monto") is None or r.get("Desde") is None)),
         ("Supuestos en USD sin dólar cargado", sum(1 for r in t["plan"] if r.get("Moneda") == "USD") if not t["params"].get("USD_CLP") else 0),
     ]
 

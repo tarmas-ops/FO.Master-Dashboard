@@ -1,17 +1,21 @@
-"""Genera la plantilla de datos (6 pestañas + Historial) a partir del Excel maestro actual.
+"""Genera la plantilla de datos (7 pestañas + Historial) a partir del Excel maestro actual.
 
 Lee el Excel con el mismo lector que usa el dashboard (src/data_loader.py) y el exportador
 (scripts/export_real_dataset.py), así que lo que migra es exactamente lo que el dashboard ya
 muestra.
 
-La plantilla es un libro de ENTRADAS: no tiene fórmulas. Lo que se calcula (patrimonio, forecast,
-real vs forecast) lo hace el dashboard; la lógica de referencia está en scripts/template_engine.py.
+Qué se escribe y qué se calcula:
+  * Se escribe: Estructura, Patrimonio, Supuestos, Flujo_Real (los montos reales) y Documentos.
+  * Se calcula: Flujo_Plan (forecast mensual a partir de Supuestos) y los totales de ambos flujos.
+    La lógica de referencia está en scripts/template_engine.py y check_template.py comprueba que
+    las fórmulas dan lo mismo.
 
   Leeme        instrucciones y parámetros (UF, dólar, inflación, último mes cerrado)
   Estructura   personas y sociedades, con su dueño y su %
   Patrimonio   una fila por activo o deuda: valor actual, fecha, método y documento
-  Flujo_Plan   reglas de ingresos y egresos hacia adelante (monto, frecuencia, reajuste, desde/hasta)
-  Flujo_Real   lo real de cada mes
+  Supuestos    reglas de ingresos y egresos hacia adelante (monto, frecuencia, reajuste, desde/hasta)
+  Flujo_Plan   flujo de caja proyectado, mes a mes, con saldo inicial y final (calculado)
+  Flujo_Real   mismo flujo de caja con lo real de cada mes (se escribe)
   Documentos   cartolas, tasaciones y facturas, con su estado de aprobación
   Historial    foto de valores en el tiempo (protegida; la completa el sistema)
 
@@ -32,7 +36,7 @@ from pathlib import Path
 import openpyxl
 from openpyxl import Workbook
 from openpyxl.formatting.rule import FormulaRule
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter as CL
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -48,6 +52,8 @@ DEFAULT_OUT = ROOT / "data" / "plantilla" / "FO_Plantilla.xlsx"
 RENT_MAPPING = ROOT / "fo-os" / "data" / "real" / "rent_mapping.json"
 MESES = 60
 ROWS = 1000  # filas con listas desplegables
+SUP_ROWS = 500  # filas de Supuestos que alimentan el forecast
+M0 = 5  # primera columna de meses en los flujos (E)
 
 NAVY, OPT, YELLOW = "1F2A44", "5B6478", "FFF4C2"
 F_HEAD = Font(bold=True, color="FFFFFF", name="Calibri", size=10)
@@ -518,8 +524,8 @@ def main(out_path: Path) -> None:
     wb = Workbook()
     wb.remove(wb.active)
     S = {}
-    for nombre, color in (("Leeme", "999999"), ("Estructura", "1F4FD8"), ("Patrimonio", "1F4FD8"), ("Flujo_Plan", "E67E22"),
-                          ("Flujo_Real", "2E8B57"), ("Documentos", "2E8B57"), ("Historial", "999999")):
+    for nombre, color in (("Leeme", "999999"), ("Estructura", "1F4FD8"), ("Patrimonio", "1F4FD8"), ("Supuestos", "E67E22"),
+                          ("Flujo_Plan", "E67E22"), ("Flujo_Real", "2E8B57"), ("Documentos", "2E8B57"), ("Historial", "999999")):
         S[nombre] = wb.create_sheet(nombre)
         S[nombre].sheet_properties.tabColor = color
 
@@ -533,7 +539,7 @@ def main(out_path: Path) -> None:
     ws.column_dimensions["G"].width = 28
     ws["B1"] = "Plantilla del Family Office"
     ws["B1"].font = F_TITLE
-    ws["B2"] = "Este archivo solo guarda lo que se escribe. Los totales, el forecast y los controles los calcula el dashboard."
+    ws["B2"] = "Se escribe en Estructura, Patrimonio, Supuestos y Flujo_Real. Flujo_Plan y todos los totales se calculan solos; el balance y los controles los muestra el dashboard."
     ws["B2"].font = F_NOTE
     ws["B4"], ws["C4"], ws["D4"] = "Parámetro", "Valor", "Qué es"
     for c in ("B4", "C4", "D4"):
@@ -564,6 +570,11 @@ def main(out_path: Path) -> None:
         ws.cell(i, 4, note).font = F_NOTE
         ws.cell(i, 4).alignment = Alignment(wrap_text=True, vertical="top")
         wb.defined_names[name] = DefinedName(name, attr_text=f"Leeme!$C${i}")
+    r_idx = 5 + len(params)
+    ws.cell(r_idx, 2, "Índice del mes de corte (calculado)").font = F_BOLD
+    ws.cell(r_idx, 3, "=YEAR(Fecha_Corte)*12+MONTH(Fecha_Corte)").number_format = "0"
+    ws.cell(r_idx, 4, "Cálculo interno (año × 12 + mes). No editar.").font = F_NOTE
+    wb.defined_names["Idx_Corte"] = DefinedName("Idx_Corte", attr_text=f"Leeme!$C${r_idx}")
     ws["F4"], ws["G4"] = "Categoría de flujo", "Equivalente en el dashboard"
     for c in ("F4", "G4"):
         ws[c].font, ws[c].fill = F_HEAD, FILL_REQ
@@ -571,17 +582,17 @@ def main(out_path: Path) -> None:
         ws.cell(i, 6, cat).font = F_INPUT
         ws.cell(i, 7, eq).font = F_INPUT
     cat_ref = f"=Leeme!$F$5:$F${4 + len(CATEGORIAS)}"
-    r0 = 5 + len(params) + 1
+    r0 = 5 + len(params) + 2
     guia = [
         ("Idea central", "Una fila por cosa. Los valores llevan fecha y método. Lo que no se sabe se deja vacío (nunca 0)."),
         ("Encabezados", "Azul = campo que conviene completar siempre. Gris = opcional (solo si aplica). Celda amarilla = falta un dato."),
-        ("Qué se actualiza", "Cada semana: Patrimonio (saldos). Cada mes: Flujo_Real y el último mes cerrado. Por evento: Estructura, Patrimonio (tasaciones, deudas), Flujo_Plan."),
+        ("Qué se actualiza", "Cada semana: Patrimonio (saldos). Cada mes: Flujo_Real y el último mes cerrado. Por evento: Estructura, Patrimonio (tasaciones, deudas), Supuestos."),
         ("No hacer", "No cambiar nombres de pestañas ni de encabezados. No pegar fórmulas ni números dentro de celdas de texto. Los valores van en CLP."),
         ("Materialidad", "El detalle completo (documento, método, tasación) importa para lo que pesa más del 2% del patrimonio. Para lo menor basta nombre, valor y fecha."),
-        ("Cómo cerrar un mes", "1) Cargar en Flujo_Real lo del mes (monto en positivo; el signo lo da «Tipo»). 2) Mover «Último mes cerrado» al mes siguiente. 3) El dashboard compara real vs plan y marca qué supuestos revisar."),
-        ("Cómo cambiar un supuesto", "No se edita la fila vieja: se le pone fecha en «Hasta» (último mes que rigió) y se agrega otra fila con «Desde» = mes siguiente."),
+        ("Cómo cerrar un mes", "1) Escribir en Flujo_Real los montos reales del mes (en positivo), en la columna de ese mes. 2) Mover «Último mes cerrado» al mes siguiente: el mes pasa de FORECAST a REAL. 3) El dashboard compara real vs plan y marca qué supuestos revisar."),
+        ("Cómo cambiar un supuesto", "En Supuestos: no se edita la fila vieja; se le pone fecha en «Hasta» (último mes que rigió) y se agrega otra fila con «Desde» = mes siguiente. Si la partida es nueva, también hay que agregarle una fila en Flujo_Plan y Flujo_Real (reemplaza «(nueva partida)» del bloque de su categoría)."),
         ("Tipos de supuesto", "Frecuencia MENSUAL, TRIMESTRAL, SEMESTRAL, ANUAL (en «Mes de pago») o UNICO. Reajuste NINGUNO, IPC (usa la inflación de arriba) o FIJO (con su %). Moneda CLP, UF o USD."),
-        ("Cuotas de créditos", "Una fila de Flujo_Plan con categoría «Servicio de deuda», «Vinculado a» la deuda (ID de Patrimonio) y fecha «Hasta» = último mes de pago."),
+        ("Cuotas de créditos", "Una fila de Supuestos con categoría «Servicio de deuda», «Vinculado a» la deuda (ID de Patrimonio) y fecha «Hasta» = último mes de pago."),
         ("Historial", "Pestaña protegida: la completa el sistema con una foto de valores. No se edita a mano."),
     ]
     for i, (a_, b_) in enumerate(guia, r0):
@@ -629,31 +640,244 @@ def main(out_path: Path) -> None:
     ws.conditional_formatting.add(f"F2:F{ROWS}", FormulaRule(formula=['AND($A2<>"",$F2="")'], fill=amarillo))
     ws.conditional_formatting.add(f"D2:D{ROWS}", FormulaRule(formula=['AND($A2<>"",$D2="",$C2<>"Activo contingente")'], fill=amarillo))
 
-    # ---------------- Flujo_Plan
-    ws = S["Flujo_Plan"]
-    table(ws, [("ID", True), ("Partida", True), ("Tipo", True), ("Categoría", True), ("Monto", True), ("Moneda", True), ("Frecuencia", True),
-               ("Mes de pago", False), ("Desde", True), ("Hasta", False), ("Reajuste", False), ("% reajuste anual", False), ("Mes del reajuste", False),
-               ("Vinculado a (ID de Patrimonio)", False), ("Es caja", False), ("Notas", False)],
-          [8, 52, 9, 30, 15, 8, 12, 8, 10, 10, 11, 10, 10, 16, 8, 80])
+    # ---------------- Supuestos (reglas del forecast)
+    ws = S["Supuestos"]
+    table(ws, [("ID", True), ("Partida", True), ("Tipo", True), ("Moneda", True), ("Monto", True), ("Frecuencia", True), ("Mes de pago", False),
+               ("Desde", True), ("Hasta", False), ("Reajuste", False), ("% reajuste anual", False), ("Mes del reajuste", False),
+               ("Categoría", True), ("Vinculado a (ID de Patrimonio)", False), ("Notas", False),
+               ("Desde (índice)", False), ("Hasta (índice)", False), ("Tasa efectiva", False), ("Mes reajuste efectivo", False), ("Mes de pago efectivo", False)],
+          [8, 52, 9, 8, 15, 12, 8, 10, 10, 11, 10, 10, 30, 16, 70, 10, 10, 9, 10, 10])
+    for col in range(16, 21):
+        ws.cell(1, col).fill = PatternFill("solid", fgColor="999999")
     for i, r in enumerate(plan, 2):
-        put_row(ws, i, [r["id"], r["partida"], r["tipo"], r["categoria"], r["monto"], r["moneda"], r["freq"], r["mes"], r["desde"], r["hasta"],
-                        r["reaj"], r["pj"], r["mj"], r["vinculo"], r["es_caja"], r["nota"]])
-    fmt_cols(ws, {5: "#,##0.##", 9: FMT_MES, 10: FMT_MES, 12: FMT_PCT})
-    for col, lst in ((3, "tipo_flujo"), (6, "moneda"), (7, "freq"), (11, "reaj"), (15, "si_no")):
+        put_row(ws, i, [r["id"], r["partida"], r["tipo"], r["moneda"], r["monto"], r["freq"], r["mes"], r["desde"], r["hasta"], r["reaj"], r["pj"], r["mj"],
+                        r["categoria"], r["vinculo"], r["nota"]])
+    for i in range(2, SUP_ROWS + 1):  # columnas auxiliares: siempre numéricas, para que el flujo las pueda multiplicar
+        for col, f in ((16, f'=IF(OR(B{i}="",H{i}=""),99999,YEAR(H{i})*12+MONTH(H{i}))'),
+                       (17, f'=IF(B{i}="",0,IF(I{i}="",999999,YEAR(I{i})*12+MONTH(I{i})))'),
+                       (18, f'=IF(J{i}="IPC",IPC_Anual,IF(J{i}="FIJO",N(K{i}),0))'),
+                       (19, f'=IF(L{i}="",1,L{i})'),
+                       (20, f'=IF(G{i}="",1,G{i})')):
+            c = ws.cell(i, col, f)
+            c.font = Font(color="000000", size=10, name="Calibri")
+    fmt_cols(ws, {5: "#,##0.##", 8: FMT_MES, 9: FMT_MES, 11: FMT_PCT}, last=SUP_ROWS)
+    for col, lst in ((3, "tipo_flujo"), (4, "moneda"), (6, "freq"), (10, "reaj")):
         dv_inline(ws, col, lst)
-    dv_range(ws, 4, cat_ref)
+    dv_range(ws, 13, cat_ref)
 
-    # ---------------- Flujo_Real
-    ws = S["Flujo_Real"]
-    table(ws, [("Fecha", True), ("Partida", True), ("Tipo", True), ("Monto", True), ("Estado", True), ("Documento (link)", False),
-               ("Categoría (si la partida es nueva)", False), ("Notas", False)], [12, 52, 9, 16, 12, 34, 30, 60])
-    fmt_cols(ws, {1: FMT_DATE, 4: FMT_CLP})
-    dv_inline(ws, 3, "tipo_flujo")
-    dv_inline(ws, 5, "estado_mov")
-    dv_range(ws, 2, f"=Flujo_Plan!$B$2:$B${ROWS}", strict=False)
-    dv_range(ws, 7, cat_ref)
-    ws["J1"] = "Monto siempre en positivo (el signo lo da «Tipo»). DEVENGADO = reconocido aunque no esté pagado; PAGADO = ya movió caja. Una partida nueva puede escribirse libremente."
-    ws["J1"].font = F_NOTE
+    # ---------------- Flujo_Plan y Flujo_Real: flujo de caja mensual
+    ING_CATS = [c for c, _ in CATEGORIAS[:6]]
+    EGR_CATS = [c for c, _ in CATEGORIAS[6:-1]]
+    ADJ_CAT = CATEGORIAS[-1][0]
+    orden: dict[tuple, list] = {}
+    for r in plan:
+        lst = orden.setdefault((r["tipo"], r["categoria"]), [])
+        if r["partida"] not in lst:
+            lst.append(r["partida"])
+    suma_caja = (f"SUMPRODUCT((Patrimonio!$C$2:$C${ROWS}=\"Caja\")*(Patrimonio!$K$2:$K${ROWS}=\"Familia\")"
+                 f"*Patrimonio!$E$2:$E${ROWS}*Patrimonio!$F$2:$F${ROWS})")
+    NUM = '#,##0;[Red]-#,##0;"–"'
+    bold = Font(bold=True, name="Calibri", size=10)
+    gris = PatternFill("solid", fgColor="EEF0F4")
+    fino = Side(style="thin", color="5B6478")
+
+    def plan_formula(r, c):
+        rg = lambda col: f"Supuestos!${col}$2:${col}${SUP_ROWS}"  # noqa: E731
+        pay = (f'({rg("F")}="MENSUAL")+({rg("F")}="TRIMESTRAL")*(MOD(MONTH({c}$4)-{rg("T")},3)=0)'
+               f'+({rg("F")}="SEMESTRAL")*(MOD(MONTH({c}$4)-{rg("T")},6)=0)'
+               f'+({rg("F")}="ANUAL")*(MONTH({c}$4)={rg("T")})+({rg("F")}="UNICO")*({c}$3={rg("P")})')
+        a_ = f'(INT(({c}$3-{rg("S")})/12)-INT(({rg("P")}-{rg("S")})/12))'
+        fx = (f'(({rg("D")}<>"UF")*({rg("D")}<>"USD")+({rg("D")}="UF")*UF_Hoy*(1+IPC_Anual)^((({c}$3-Idx_Corte)>0)*({c}$3-Idx_Corte)/12)'
+              f'+({rg("D")}="USD")*N(USD_CLP))')
+        return (f'=SUMPRODUCT(({rg("B")}=$A{r})*({rg("C")}=$C{r})*({c}$3>={rg("P")})*({c}$3<={rg("Q")})*({pay})*{rg("E")}'
+                f'*(1+{rg("R")})^(({a_}>0)*{a_})*{fx})')
+
+    def write_flow(ws, kind):
+        ws.column_dimensions["A"].width = 52
+        ws.column_dimensions["B"].width = 30
+        ws.column_dimensions["C"].width = 9
+        ws.column_dimensions["D"].width = 17
+        last_col = CL(M0 + MESES - 1)
+        ws["A1"] = ("FLUJO DE CAJA PROYECTADO (forecast a partir de Supuestos)" if kind == "plan" else "FLUJO DE CAJA REAL (se escribe en las celdas azules)")
+        ws["A1"].font = F_TITLE
+        for j, t in enumerate(["Partida", "Categoría", "Tipo", "Total"], 1):
+            c = ws.cell(4, j, t)
+            c.font, c.fill = F_HEAD, FILL_REQ
+        ws.cell(2, 4, "Estado del mes →").font = F_NOTE
+        ws.cell(3, 4, "Índice →").font = F_NOTE
+        for k in range(MESES):
+            col = M0 + k
+            c = CL(col)
+            ws.column_dimensions[c].width = 12
+            ws.cell(2, col, f'=IF({c}4<=Ultimo_Mes_Cerrado,"REAL","FORECAST")').font = F_NOTE
+            ws.cell(3, col, f"=YEAR({c}4)*12+MONTH({c}4)").font = F_NOTE
+            if kind == "plan":
+                ws.cell(4, col, "=Mes_Inicio" if k == 0 else f"=EDATE({CL(col - 1)}4,1)")
+            else:
+                ws.cell(4, col, f"=Flujo_Plan!{c}4")
+            ws.cell(4, col).number_format = FMT_MES
+            ws.cell(4, col).font, ws.cell(4, col).fill = F_HEAD, FILL_REQ
+            ws.cell(4, col).alignment = Alignment(horizontal="right")
+        r = 5
+        fila = {}
+
+        def etiqueta(row, texto, fuente=bold, relleno=None):
+            ws.cell(row, 1, texto).font = fuente
+            if relleno:
+                for col in range(1, M0 + MESES):
+                    ws.cell(row, col).fill = relleno
+
+        def fila_formulas(row, fn, total=True, fuente=bold, relleno=None, borde=False):
+            for k in range(MESES):
+                c = CL(M0 + k)
+                cell = ws.cell(row, M0 + k, fn(c))
+                cell.number_format, cell.font = NUM, fuente
+                if relleno:
+                    cell.fill = relleno
+                if borde:
+                    cell.border = Border(top=fino)
+            if total:
+                cell = ws.cell(row, 4, f"=SUM({CL(M0)}{row}:{last_col}{row})")
+                cell.number_format, cell.font = NUM, fuente
+                if relleno:
+                    cell.fill = relleno
+                if borde:
+                    cell.border = Border(top=fino)
+
+        fila["apertura"] = r
+        etiqueta(r, "SALDO INICIAL DE CAJA", relleno=gris)
+        r += 2
+
+        def bloque(titulo, cats, tipo):
+            nonlocal r
+            etiqueta(r, titulo, Font(bold=True, size=11, color=NAVY, name="Calibri"))
+            r += 1
+            subs = []
+            for cat in cats:
+                if (tipo, cat) not in orden:
+                    continue
+                sub = r
+                first = r + 1
+                n = len(orden[(tipo, cat)])
+                lastd = first + n  # incluye la fila de reserva
+                etiqueta(sub, cat)
+                fila_formulas(sub, lambda c, f=first, l=lastd: f"=SUM({c}{f}:{c}{l})")
+                subs.append(sub)
+                r += 1
+                for partida in orden[(tipo, cat)] + ["(nueva partida)"]:
+                    nueva = partida == "(nueva partida)"
+                    ws.cell(r, 1, partida).font = Font(italic=nueva, color="999999" if nueva else "000000", name="Calibri", size=10)
+                    ws.cell(r, 1).alignment = Alignment(indent=1)
+                    ws.cell(r, 2, cat).font = F_NOTE
+                    ws.cell(r, 3, tipo).font = F_NOTE
+                    ws.cell(r, 4, f"=SUM({CL(M0)}{r}:{last_col}{r})").number_format = NUM
+                    for k in range(MESES):
+                        c = CL(M0 + k)
+                        cell = ws.cell(r, M0 + k, plan_formula(r, c) if kind == "plan" else None)
+                        cell.number_format = NUM
+                        cell.font = Font(color="000000" if kind == "plan" else "1F4FD8", name="Calibri", size=10)
+                    r += 1
+            return subs
+
+        def visible(c):  # el flujo real solo muestra totales de meses cerrados o con datos
+            return f'OR({c}$2="REAL",SUMPRODUCT(($C$6:$C${{fin}}<>"")*ISNUMBER({c}$6:{c}${{fin}}))>0)'
+
+        subs_i = bloque("INGRESOS", ING_CATS, "Ingreso")
+        fila["tot_ing"] = r
+        etiqueta(r, "TOTAL INGRESOS", relleno=gris)
+        r += 2
+        subs_e = bloque("EGRESOS", EGR_CATS, "Egreso")
+        fila["tot_egr"] = r
+        etiqueta(r, "TOTAL EGRESOS", relleno=gris)
+        r += 2
+        fila["neto"] = r
+        etiqueta(r, "FLUJO NETO DE CAJA", relleno=gris)
+        r += 1
+        fila["cierre"] = r
+        etiqueta(r, "SALDO FINAL DE CAJA", relleno=gris)
+        r += 2
+        # Ajustes que no son caja (memo)
+        etiqueta(r, "AJUSTES QUE NO SON CAJA (memo: no entran al saldo de caja)", Font(bold=True, size=11, color=NAVY, name="Calibri"))
+        r += 1
+        aj_rows = []
+        for tipo in ("Ingreso", "Egreso"):
+            for partida in orden.get((tipo, ADJ_CAT), []):
+                ws.cell(r, 1, partida).font = Font(name="Calibri", size=10)
+                ws.cell(r, 1).alignment = Alignment(indent=1)
+                ws.cell(r, 2, ADJ_CAT).font = F_NOTE
+                ws.cell(r, 3, tipo).font = F_NOTE
+                ws.cell(r, 4, f"=SUM({CL(M0)}{r}:{last_col}{r})").number_format = NUM
+                for k in range(MESES):
+                    c = CL(M0 + k)
+                    cell = ws.cell(r, M0 + k, plan_formula(r, c) if kind == "plan" else None)
+                    cell.number_format = NUM
+                    cell.font = Font(color="000000" if kind == "plan" else "1F4FD8", name="Calibri", size=10)
+                aj_rows.append((tipo, r))
+                r += 1
+        fila["ajuste"] = r
+        etiqueta(r, "Ajuste neto (ingreso − egreso)")
+        r += 1
+        fila["neto_orig"] = r
+        etiqueta(r, "Flujo neto como en el Excel original (caja + ajustes)")
+        fin = r
+        # fórmulas de totales
+        det_fin = fila["tot_egr"] - 1
+
+        def show(c):
+            return f'OR({c}$2="REAL",SUMPRODUCT(($C$6:$C${det_fin}<>"")*ISNUMBER({c}$6:{c}${det_fin}))>0)'
+
+        def sumas(subs):
+            return lambda c: "=SUM(" + ",".join(f"{c}{x}" for x in subs) + ")" if subs else "=0"
+
+        def real_wrap(fn):
+            if kind == "plan":
+                return fn
+            return lambda c: f'=IF({show(c)},{fn(c)[1:]},"")'
+
+        fila_formulas(fila["tot_ing"], real_wrap(sumas(subs_i)), relleno=gris, borde=True)
+        fila_formulas(fila["tot_egr"], real_wrap(sumas(subs_e)), relleno=gris, borde=True)
+        fila_formulas(fila["neto"], real_wrap(lambda c: f"={c}{fila['tot_ing']}-{c}{fila['tot_egr']}"), relleno=gris, borde=True)
+        # saldos
+        for k in range(MESES):
+            c = CL(M0 + k)
+            prev = CL(M0 + k - 1)
+            if k == 0:
+                ap = f"={suma_caja}"
+            else:
+                ap = f"={prev}{fila['cierre']}"
+            ws.cell(fila["apertura"], M0 + k, ap)
+            if kind == "plan":
+                cierre = f"={c}{fila['apertura']}+{c}{fila['neto']}"
+            else:
+                cierre = f'=IF(AND(ISNUMBER({c}{fila["apertura"]}),{show(c)}),{c}{fila["apertura"]}+{c}{fila["neto"]},"")'
+            ws.cell(fila["cierre"], M0 + k, cierre)
+            for row in (fila["apertura"], fila["cierre"]):
+                cell = ws.cell(row, M0 + k)
+                cell.number_format, cell.font, cell.fill = NUM, bold, gris
+            ws.cell(fila["cierre"], M0 + k).border = Border(top=fino)
+        ws.cell(fila["cierre"], 4).fill = gris
+        ws.cell(fila["apertura"], 4).fill = gris
+        # ajustes
+        def ajuste(c):
+            ing = "+".join(f"{c}{x}" for t_, x in aj_rows if t_ == "Ingreso") or "0"
+            egr = "+".join(f"{c}{x}" for t_, x in aj_rows if t_ == "Egreso") or "0"
+            return f"=({ing})-({egr})"
+        fila_formulas(fila["ajuste"], ajuste if kind == "plan" else real_wrap(ajuste), fuente=Font(name="Calibri", size=10))
+        fila_formulas(fila["neto_orig"], (lambda c: f"={c}{fila['neto']}+{c}{fila['ajuste']}") if kind == "plan"
+                      else real_wrap(lambda c: f"={c}{fila['neto']}+{c}{fila['ajuste']}"), fuente=bold)
+        ws.freeze_panes = ws.cell(5, M0)
+        ws.conditional_formatting.add(f"{CL(M0)}4:{last_col}4", FormulaRule(formula=[f'{CL(M0)}$2="REAL"'], fill=PatternFill("solid", bgColor="2E8B57")))
+        if kind == "plan":
+            ws["A2"] = (f'=IF(AND(USD_CLP="",COUNTIF(Supuestos!$D$2:$D${SUP_ROWS},"USD")>0),"ATENCIÓN: hay supuestos en USD y falta el dólar en Leeme (no se incluyen). ","")'
+                        f'&IF(SUMPRODUCT((Supuestos!$B$2:$B${SUP_ROWS}<>"")*(COUNTIF($A$6:$A${fin},Supuestos!$B$2:$B${SUP_ROWS})=0))>0,"ATENCIÓN: hay supuestos cuya partida no tiene fila en este flujo.","")')
+            ws["A2"].font = Font(bold=True, color="C0392B", name="Calibri", size=10)
+        else:
+            ws["A2"] = "Escribe el monto real (en positivo) en la celda del mes. Los totales y el saldo aparecen para los meses cerrados o con datos."
+            ws["A2"].font = F_NOTE
+        return fila
+
+    fila_plan = write_flow(S["Flujo_Plan"], "plan")
+    fila_real = write_flow(S["Flujo_Real"], "real")
 
     # ---------------- Documentos
     ws = S["Documentos"]
