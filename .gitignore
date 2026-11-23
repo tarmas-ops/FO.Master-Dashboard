@@ -16,3 +16,6 @@ fo-os/.sheets-fixture/
 .env.*
 *.pem
 .vercel/
+
+# Plantilla generada: contiene patrimonio y RUTs reales
+data/plantilla/
